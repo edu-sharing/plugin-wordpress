@@ -1,0 +1,18 @@
+{
+  "name": "edusharing",
+  "version": "0.1.0",
+  "description": "Edu-Sharing wordpress plugin",
+  "main": "block.js",
+  "dependencies": {
+    "@wordpress/components": "^7.3.2",
+    "@wordpress/scripts": "3.1.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "wp-scripts start",
+    "build": "wp-scripts build"
+  },
+  "author": "metaventis",
+  "license": "ISC"
+}
