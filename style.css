@@ -26,6 +26,13 @@
     text-decoration: none;
 }
 
+.es .components-button.is-small{
+    height: 24px;
+    line-height: 22px;
+    padding: 0 8px 1px;
+    font-size: 11px;
+}
+
 .es .close{
     position: absolute;
     top: 5px;
@@ -39,6 +46,25 @@
     box-shadow: inset 0 -1px 0 #999;
     color: #23282d;
     text-decoration: none;
+}
+
+.esTitle{
+    background: #f6f6f6;
+    padding: 6px;
+    color: #4D799A;
+}
+
+.esTitle svg{
+    margin-right: 5px;
+}
+
+.esLink{
+    width: 50%;
+}
+
+.es .block-library-image__dimensions__row{
+    display: flex;
+    justify-content: space-between;
 }
 
 

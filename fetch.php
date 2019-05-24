@@ -12,8 +12,9 @@ if($useCase == 'setUsage'){
     $post_ID = $json_obj['post_id'];
     $postTitle = $json_obj['post_title'];
     $objectUrl = $json_obj['objectUrl'];
-    $objectVersion = $json_obj['$objectVersion'];
-    $id = edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitle);
+    $objectVersion = $json_obj['objectVersion'];
+    $resourceId = $json_obj['resourceId'];
+    $id = edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitle, $resourceId);
     if ( ! $id ) {
         throw new Exception('Error: set_usage');
     }
@@ -21,7 +22,8 @@ if($useCase == 'setUsage'){
 }elseif ($useCase == 'deleteUsage'){
     $post_ID = $json_obj['post_id'];
     $objectUrl = $json_obj['objectUrl'];
-    edusharing_delete_instance($objectUrl, $post_ID);
+    $resourceId = $json_obj['resourceId'];
+    edusharing_delete_instance($objectUrl, $post_ID, $resourceId);
     echo 'Usage deleted';
 }elseif ($useCase == 'getTicket'){
     $post_ID = $json_obj['post_id'];

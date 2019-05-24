@@ -10,24 +10,33 @@ function es_register_settings() {
     add_option( 'es_privateKey');
     register_setting( 'es_app_group', 'es_privateKey');
     //Repo Options
-    add_option( 'es_repo_publicKey');
-    register_setting( 'es_repo_group', 'es_repo_publicKey');
+    add_option( 'es_repo_public_key', 'publicKey');
+    register_setting( 'es_repo_group', 'es_repo_public_key');
+
     add_option( 'es_repo_port', '8080');
     register_setting( 'es_repo_group', 'es_repo_port');
+
     add_option( 'es_repo_clientPort', '8080');
     register_setting( 'es_repo_group', 'es_repo_clientPort');
-    add_option( 'es_repo_domain');
+
+    add_option( 'es_repo_domain', 'repo_domain');
     register_setting( 'es_repo_group', 'es_repo_domain');
-    add_option( 'es_repo_url');
+
+    add_option( 'es_repo_url', 'repo_url');
     register_setting( 'es_repo_group', 'es_repo_url');
-    add_option( 'es_authwebservice_wsdl');
-    register_setting( 'es_repo_group', 'es_authwebservice_wsdl');
-    add_option( 'es_authenticationwebservice_wsdl');
-    register_setting( 'es_repo_group', 'es_authenticationwebservice_wsdl');
+
+    add_option( 'es_repo_authenticationwebservice_wsdl', 'authenticationwebservice_wsdl');
+    register_setting( 'es_repo_group', 'es_repo_authenticationwebservice_wsdl');
+
+    add_option( 'es_repo_usagewebservice_wsdl', 'es_repo_usagewebservice_wsdl');
+    register_setting( 'es_repo_group', 'es_repo_usagewebservice_wsdl');
+
     add_option( 'es_repo_protocol', 'http');
     register_setting( 'es_repo_group', 'es_repo_protocol');
+
     add_option( 'es_repo_host');
     register_setting( 'es_repo_group', 'es_repo_host');
+
     add_option( 'es_repo_version', '4.2');
     register_setting( 'es_repo_group', 'es_repo_version');
     //Auth Options
@@ -68,9 +77,17 @@ add_action('admin_menu', 'es_register_options_page');
 function es_options_page()
 {
 ?>
-    <div>
+    <div class="es-settings">
     <?php screen_icon(); ?>
-    <h2>Edu-Sharing Einstellungen</h2>
+    <h1><img src="<?php echo plugin_dir_url(__FILE__) . '/img/icon.svg'  ?>">Edu-Sharing Einstellungen</h1>
+        <div class="es-connect-repo">
+            <div>
+                <h3>Mit Heimat-Repositorium verbinden:</h3>
+                <p>Dies füllt automatisch viele der Einstellungen aus.</p>
+            </div>
+            <a href="<?php echo plugin_dir_url(__FILE__) . '/import_metadata.php'  ?>" target="_blank">Repositorium verbinden</a>
+        </div>
+        <div class="es-forms">
     <form method="post" action="options.php">
         <?php settings_fields( 'es_app_group' ); ?>
         <h3>Application properties</h3>
@@ -96,8 +113,8 @@ function es_options_page()
         <h3>Repository properties</h3>
         <table>
             <tr>
-                <th scope="row"><label for="es_repo_publicKey">Public Key</label></th>
-                <td><textarea id="es_repo_publicKey" name="es_repo_publicKey" rows="10" cols="30"/><?php echo get_option('es_repo_publicKey'); ?></textarea></td>
+                <th scope="row"><label for="es_repo_public_key">Public Key</label></th>
+                <td><textarea id="es_repo_public_key" name="es_repo_public_key" rows="10" cols="30"/><?php echo get_option('es_repo_public_key'); ?></textarea></td>
             </tr>
             <tr>
                 <th scope="row"><label for="es_repo_port">Port</label></th>
@@ -116,12 +133,12 @@ function es_options_page()
                 <td><input type="text" id="es_repo_url" name="es_repo_url" value="<?php echo get_option('es_repo_url'); ?>" /></td>
             </tr>
             <tr>
-                <th scope="row"><label for="es_authwebservice_wsdl">es_authwebservice_wsdl</label></th>
-                <td><input type="text" id="es_authwebservice_wsdl" name="es_authwebservice_wsdl" value="<?php echo get_option('es_authwebservice_wsdl'); ?>" /></td>
+                <th scope="row"><label for="es_repo_authenticationwebservice_wsdl">authenticationwebservice_wsdl</label></th>
+                <td><input type="text" id="es_repo_authenticationwebservice_wsdl" name="es_repo_authenticationwebservice_wsdl" value="<?php echo get_option('es_repo_authenticationwebservice_wsdl'); ?>" /></td>
             </tr>
             <tr>
-                <th scope="row"><label for="es_authenticationwebservice_wsdl">authenticationwebservice_wsdl</label></th>
-                <td><input type="text" id="es_authenticationwebservice_wsdl" name="es_authenticationwebservice_wsdl" value="<?php echo get_option('es_authenticationwebservice_wsdl'); ?>" /></td>
+                <th scope="row"><label for="es_repo_usagewebservice_wsdl">es_repo_usagewebservice_wsdl</label></th>
+                <td><input type="text" id="es_repo_usagewebservice_wsdl" name="es_repo_usagewebservice_wsdl" value="<?php echo get_option('es_repo_usagewebservice_wsdl'); ?>" /></td>
             </tr>
             <tr>
                 <th scope="row"><label for="es_repo_protocol">Protocol</label></th>
@@ -190,6 +207,7 @@ function es_options_page()
         </table>
             <?php  submit_button(); ?>
     </form>
+        </div>
     </div>
 
     <?php

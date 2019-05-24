@@ -4,10 +4,14 @@
  */
 import {
     Button,
+    IconButton,
+    Icon,
     PanelBody,
     TextareaControl,
     TextControl,
     Placeholder,
+    ButtonGroup,
+    ResizableBox,
 } from '@wordpress/components';
 
 import {
@@ -17,6 +21,8 @@ import {
     InspectorControls,
 } from '@wordpress/block-editor';
 
+import classnames from 'classnames';
+
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
 
@@ -24,7 +30,6 @@ import { Component } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
 const el = wp.element.createElement;
-
 
 const edusharing_icon = el('svg', { width: 20, height: 20 },
     el('polygon', { fill:'#3162A7', points: "2.748,19.771 0.027,15.06 2.748,10.348 8.188,10.348 10.908,15.06 8.188,19.771" } ),
@@ -37,17 +42,26 @@ class esEdit extends Component {
     constructor( { attributes } ) {
         super( ...arguments );
         this.toggleIsEditing = this.toggleIsEditing.bind( this );
+        this.toggleFocus = this.toggleFocus.bind( this );
         this.updateAlignment = this.updateAlignment.bind( this );
-        this.setUsage = this.setUsage.bind(this);
-        this.deleteUsage = this.deleteUsage.bind(this);
+        this.updateWidth = this.updateWidth.bind( this );
+        this.updateHeight = this.updateHeight.bind( this );
+        this.updateDimensions = this.updateDimensions.bind( this );
+        //this.setUsage = this.setUsage.bind(this);
+        //this.deleteUsage = this.deleteUsage.bind(this);
 
         this.state = {
             isEditing: ! attributes.previewImg,
+            isFocus: ''
         };
     }
 
     componentDidMount() {
-        //const { attributes, setAttributes } = this.props;
+        const { attributes, setAttributes } = this.props;
+
+        if(attributes.previewUrl){
+            setAttributes( { previewImg: attributes.previewUrl } );
+        }
     }
 
     componentDidUpdate( prevProps ) {
@@ -56,9 +70,8 @@ class esEdit extends Component {
 
     componentWillUnmount() {
         const { attributes, setAttributes } = this.props;
-
         //deleteUsage
-        this.deleteUsage(attributes.objectUrl);
+        this.deleteUsage(attributes.objectUrl, attributes.resourceId);
 
     }
 
@@ -73,11 +86,40 @@ class esEdit extends Component {
         }
     }
 
+    toggleFocus() {
+        this.setState( {
+            isFocus: 'test',
+        } );
+        if ( this.state.isFocus ) {
+            //speak( __( 'You are now viewing the image in the image block.' ) );
+        } else {
+            //speak( __( 'You are now editing the image in the image block.' ) );
+        }
+    }
+
     updateAlignment( nextAlign ) {
         this.props.setAttributes( { objectAlign: nextAlign } );
     }
 
-    setUsage(url, version){
+    updateWidth( width ) {
+        this.props.setAttributes( {
+            objectWidth: parseInt( width, 10 )
+        } );
+    }
+
+    updateHeight( height ) {
+        this.props.setAttributes( {
+            objectHeight: parseInt( height, 10 ),
+        } );
+    }
+
+    updateDimensions( objectWidth = undefined, objectHeight = undefined ) {
+        return () => {
+            this.props.setAttributes( { objectWidth, objectHeight } );
+        };
+    }
+
+    setUsage(url, version, resourceId){
         const { attributes, setAttributes } = this.props;
         const post_id = wp.data.select("core/editor").getCurrentPostId();
         const post_title = wp.data.select("core/editor").getCurrentPost().title;
@@ -97,6 +139,7 @@ class esEdit extends Component {
                 post_title: post_title,
                 objectUrl: url,
                 objectVersion: version,
+                resourceId: resourceId
             })
         })
             .then(function(response) {
@@ -110,7 +153,7 @@ class esEdit extends Component {
             })
     }
 
-    deleteUsage(objectUrl){
+    deleteUsage(objectUrl, resourceId){
         const { attributes, setAttributes } = this.props;
         const post_id = wp.data.select("core/editor").getCurrentPostId();
         const plugin_url = wp.data.select("core/editor").getPermalinkParts().prefix + 'wp-content/plugins/edusharing/';
@@ -124,7 +167,9 @@ class esEdit extends Component {
             body: JSON.stringify({
                 useCase: 'deleteUsage',
                 post_id: post_id,
-                objectUrl: objectUrl})
+                objectUrl: objectUrl,
+                resourceId: resourceId
+            })
         })
             .then(function(response) {
                 if (response.status >= 200 && response.status < 300) {
@@ -168,7 +213,9 @@ class esEdit extends Component {
                         body: JSON.stringify({
                             useCase: 'deleteUsage',
                             post_id: post_id,
-                            objectUrl: attributes.objectUrl})
+                            objectUrl: attributes.objectUrl,
+                            resourceId: attributes.resourceId
+                        })
                     })
                         .then(function(response) {
                             if (response.status >= 200 && response.status < 300) {
@@ -186,13 +233,15 @@ class esEdit extends Component {
                 const version = node.contentVersion;
                 const repoID = node.parent.repo;
                 if(!node.properties["ccm:height"]){
-                    height = '50px';
-                    width = '250px';
+                    height = '160';
+                    width = '120';
                 }else{
                     height = node.properties["ccm:height"][0];
                     width = node.properties["ccm:width"][0];
                 }
-                const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID;
+                const resourceId = Math.floor(Math.random() * 10000) + post_id;
+                console.log('resourceId: '+resourceId);
+                const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID + '&resourceId=' + resourceId;
 
                 setAttributes({
                     previewImg: node.preview.url,
@@ -200,9 +249,14 @@ class esEdit extends Component {
                     nodeID: node.ref.id,
                     objectUrl: node.objectUrl,
                     objectVersion: node.contentVersion,
-                    objectHeight: height,
-                    objectWidth: width,
+                    objectHeight: parseInt( height, 10 ),
+                    objectWidth: parseInt( width, 10 ),
+                    orgHeight: parseInt( height, 10 ),
+                    orgWidth: parseInt( width, 10 ),
                     objectTitle: node.title,
+                    resourceId: resourceId,
+                    mimeType: node.mimetype,
+                    mediaType: node.mediatype,
                     hideObj: 'block',
                 });
 
@@ -220,6 +274,7 @@ class esEdit extends Component {
                         post_title: post_title,
                         objectUrl: url,
                         objectVersion: version,
+                        resourceId: resourceId
                     })
                 })
                     .then(function(response) {
@@ -233,19 +288,23 @@ class esEdit extends Component {
                     })
 
                 window.removeEventListener('message', handleRepo, false );
-                console.log('removed evenlistener');
             }
         }, false);
 
-        let url = repoDomain + '/components/search?reurl=WINDOW&ticket=' + repoTicket;
+        let url = repoDomain + '/components/search?&applyDirectories=true&reurl=WINDOW&ticket=' + repoTicket;
         window.win = window.open(url);
     }
+
+
 
     render() {
         const {isEditing} = this.state;
         const {
             attributes,
             setAttributes,
+            toggleSelection,
+            isSelected,
+            className,
         } = this.props;
         const {
             objectAlign,
@@ -254,8 +313,12 @@ class esEdit extends Component {
             previewImg,
             objectTitle,
             objectWidth,
-            objectHeight,
+            objectHeight
         } = attributes;
+
+        const currentWidth = objectWidth;
+        const currentHeight = objectHeight;
+
         const controls = (
             <BlockControls>
                 <BlockAlignmentToolbar
@@ -283,7 +346,7 @@ class esEdit extends Component {
             </Placeholder>
         )
 
-        //show placeolder
+        //show placeholder
         if ( isEditing || ! previewImg ) {
             return (
                 <React.Fragment>
@@ -293,7 +356,11 @@ class esEdit extends Component {
             );
         }
 
-        const getInspectorControls = () => (
+        const classes = classnames( className, {
+            'is-focused': isSelected,
+        } );
+
+        const getInspectorControls = (width, height) => (
             <InspectorControls>
                 <div class='es'>
                 <PanelBody title={ __( 'Edusharing Settings' ) }>
@@ -314,22 +381,44 @@ class esEdit extends Component {
                                     type="number"
                                     className="block-library-image__dimensions__width"
                                     label={ __( 'Width' ) }
-                                    value={ objectWidth || '' }
+                                    value={ objectWidth || width || '' }
                                     min={ 1 }
-                                    onChange={ function(changes){
-                                        setAttributes({ objectWidth: changes });
-                                    } }
+                                    onChange={ this.updateWidth }
                                 />
                                 <TextControl
                                     type="number"
                                     className="block-library-image__dimensions__height"
                                     label={ __( 'Height' ) }
-                                    value={ objectHeight || '' }
+                                    value={ objectHeight || height || '' }
                                     min={ 1 }
-                                    onChange={ function(changes){
-                                        setAttributes({ objectHeight: changes });
-                                    } }
+                                    onChange={ this.updateHeight }
                                 />
+                            </div>
+                            <div className="block-library-image__dimensions__row">
+                                <ButtonGroup aria-label={ __( 'Image Size' ) }>
+                                    { [ 25, 50, 75, 100 ].map( ( scale ) => {
+                                        const scaledWidth = Math.round( width * ( scale / 100 ) );
+                                        const scaledHeight = Math.round( height * ( scale / 100 ) );
+
+                                        //const isCurrent = objectWidth === scaledWidth && objectHeight === scaledHeight;
+
+                                        return (
+                                            <Button
+                                                key={ scale }
+                                                isSmall
+                                                onClick={ this.updateDimensions( scaledWidth, scaledHeight ) }
+                                            >
+                                                { scale }%
+                                            </Button>
+                                        );
+                                    } ) }
+                                </ButtonGroup>
+                                <Button
+                                    isSmall
+                                    onClick={ this.updateDimensions(width, height) }
+                                >
+                                    { __( 'Reset' ) }
+                                </Button>
                             </div>
                         </div>
 
@@ -353,12 +442,81 @@ class esEdit extends Component {
             </InspectorControls>
         );
 
+        if(attributes.mediaType == 'link'){
+            return(
+                <React.Fragment>
+                    <div className={'eduObject'}>
+                        { controls }
+                        { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
+                        <div className={'esLink'} onDoubleClick={ this.toggleIsEditing }>
+                            <div className={'esTitle'}>
+                                <Icon icon="admin-links" />
+                                {attributes.objectTitle}
+                            </div>
+                        </div>
+                        <p>{attributes.objectCaption}</p>
+                    </div>
+                </React.Fragment>
+            )
+        }
+
+        if(attributes.mediaType == 'file-pdf'){
+            return(
+                <React.Fragment>
+                    <div className={'eduObject'}>
+                        { controls }
+                        { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
+                        <div className={'esLink'} onDoubleClick={ this.toggleIsEditing }>
+                            <div className={'esTitle'}>
+                                <Icon icon="media-document" />
+                                {attributes.objectTitle}
+                            </div>
+                        </div>
+                        <p>{attributes.objectCaption}</p>
+                    </div>
+                </React.Fragment>
+            )
+        }
+
         return (
+
             <div className={'eduObject'}>
                 { controls }
-                { getInspectorControls() }
-                <figure class={attributes.objectAlign}>
-                    <img src={ attributes.previewUrl } height={attributes.objectHeight} width={attributes.objectWidth} onDoubleClick={ this.toggleIsEditing }/>
+                { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
+                <figure className={ classes + ' wp-block-image'}>
+                    <ResizableBox
+                        size={ {
+                            width: objectWidth,
+                            height: objectHeight,
+                        } }
+                        minHeight="50"
+                        minWidth="50"
+                        maxWidth="1280"
+                        enable={ {
+                            top: false,
+                            right: true,
+                            bottom: true,
+                            left: false,
+                            topRight: false,
+                            bottomRight: true,
+                            bottomLeft: false,
+                            topLeft: false,
+                        } }
+                        lockAspectRatio
+                        onResizeStart={ () => {
+                            toggleSelection( false );
+                        } }
+                        onResizeStop={ ( event, direction, elt, delta ) => {
+                            setAttributes( {
+                                objectWidth: parseInt( currentWidth + delta.width, 10 ),
+                                objectHeight: parseInt( currentHeight + delta.height, 10 ),
+                            } );
+                            toggleSelection( true );
+                        } }
+                    >
+                        <img src={ attributes.previewImg } height={objectHeight} width={objectWidth} onDoubleClick={ this.toggleIsEditing }/>
+                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>{attributes.objectTitle}</div>
+                    </ResizableBox>
                     <p>{attributes.objectCaption}</p>
                 </figure>
             </div>

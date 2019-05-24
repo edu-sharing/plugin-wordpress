@@ -34,7 +34,7 @@ class mod_edusharing_web_service_factory {
      * @throws Exception
      */
     public function __construct() {
-        $this->authenticationservicewsdl = get_option('es_authwebservice_wsdl');
+        $this->authenticationservicewsdl = get_option('es_repo_authenticationwebservice_wsdl');
         if ( empty($this->authenticationservicewsdl) ) {
             echo "FAILURE: construct ";
     }
@@ -286,7 +286,7 @@ function edusharing_get_object_id_from_url($objecturl) {
  */
 function edusharing_encrypt_with_repo_public($data) {
     $crypted = '';
-    $key = openssl_get_publickey(get_option('es_repo_publicKey'));
+    $key = openssl_get_publickey(get_option('es_repo_public_key'));
     openssl_public_encrypt($data ,$crypted, $key);
     if($crypted === false) {
         trigger_error('Error: encrypt_with_repo_public', E_USER_WARNING);
@@ -321,7 +321,7 @@ function edusharing_get_signature($data) {
  * @param stdClass $edusharing An object from the form in mod_form.php
  * @return int The id of the newly inserted edusharing record
  */
-function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitle) {
+function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitle, $resourceId) {
 
     $edusharing = new stdClass;
     $edusharing->timecreated = time();
@@ -330,6 +330,12 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
     $edusharing->object_url = $objectUrl;
     $edusharing->course = $post_ID;
     $edusharing->postTitle = $postTitle;
+    $edusharing->id = $resourceId;
+
+    if(!$resourceId){
+        $resourceId = $post_ID;
+        echo '<script>console.log("add_instance no resourceId")</script>';
+    }
 
     $user = wp_get_current_user();
 
@@ -352,9 +358,9 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
             }
         }
 
-    $id = $post_ID;
+    $id = $resourceId;
     $soapclientparams = array();
-    $client = new mod_edusharing_sig_soap_client(get_option('es_authenticationwebservice_wsdl'), $soapclientparams);
+    $client = new mod_edusharing_sig_soap_client(get_option('es_repo_usagewebservice_wsdl'), $soapclientparams);
     $xml = edusharing_get_usage_xml($edusharing);
 
     try {
@@ -368,13 +374,14 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
             "toUsed"  => '2222-05-30T09:00:00',
             "distinctPersons"  => '0',
             "version"  => $edusharing->object_version,
-            "resourceId"  => $id,
+            "resourceId"  => $resourceId,
             "xmlParams"  => $xml,
         );
+        //var_dump($params);die();
         $setusage = $client->setUsage($params);
         if (isset($updateversion) && $updateversion === true) {
             $edusharing->object_version = $setusage->setUsageReturn->usageVersion;
-            $edusharing->id = $id;;
+            $edusharing->id = $id;
         }
 
     } catch (Exception $e) {
@@ -462,10 +469,13 @@ function edusharing_update_instance(stdClass $edusharing) {
  * @param int $id Id of the module instance
  * @return boolean Success/Failure
  */
-function edusharing_delete_instance($objectUrl, $post_ID) {
+function edusharing_delete_instance($objectUrl, $post_ID, $resourceId) {
     try {
-
-        $connectionurl = get_option('es_authenticationwebservice_wsdl');
+        if(!$resourceId){
+            $resourceId = $post_ID;
+            echo '<script>console.log("delete_instance no resourceId: '.$resourceId.'")</script>';
+        }
+        $connectionurl = get_option('es_repo_usagewebservice_wsdl');
         if ( ! $connectionurl ) {
             throw new Exception('error_missing_usagewsdl');
         }
@@ -475,7 +485,7 @@ function edusharing_delete_instance($objectUrl, $post_ID) {
             'user'  => edusharing_get_auth_key(),
             'lmsId'  => get_option('es_appID'),
             'courseId'  => $post_ID,
-            'resourceId'  => $post_ID
+            'resourceId'  => $resourceId
         );
         $ccwsusage->deleteUsage($params);
 
@@ -533,7 +543,12 @@ function get_repo_ticket(){
  * @return string
  */
 
-function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectVersion) {
+function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectVersion, $resourceId = NULL) {
+
+    if(!$resourceId){
+        $resourceId = $postID;
+        echo '<script>console.log("get_redirect_url: no resourceId")</script>';
+    }
 
     $url = get_option('es_repo_url') . 'renderingproxy';
 
@@ -548,7 +563,7 @@ function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectV
 
     $url .= '&obj_id='.urlencode(edusharing_get_object_id_from_url($objectUrl));
 
-    $url .= '&resource_id='.urlencode($postID);
+    $url .= '&resource_id='.urlencode($resourceId);
     $url .= '&course_id='.urlencode($postID);
 
     $url .= '&display='.urlencode($displaymode);

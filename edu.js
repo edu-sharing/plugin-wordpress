@@ -49,9 +49,7 @@
         esObject.removeAttr("data-type");
     }
 
-    jquery("div[data-type='esObject']:near-viewport(400)").each(function () {
-        renderEsObject(jquery(this));
-    })
+
 
     jquery(window).scroll(function () {
         jquery("div[data-type='esObject']:near-viewport(400)").each(function () {
@@ -60,6 +58,10 @@
     });
 
     jquery(document).ready(function() {
+
+        jquery("div[data-type='esObject']:near-viewport(400)").each(function () {
+            renderEsObject(jquery(this));
+        })
 
         jquery("body").click(function (e) {
 

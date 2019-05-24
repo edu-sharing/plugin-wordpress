@@ -61,6 +61,11 @@ function es_block_styles_example_enqueue()
 }
 add_action('enqueue_block_assets', 'es_block_styles_example_enqueue');
 
+function es_admin_style() {
+    wp_enqueue_style('es_admin_css', plugins_url('admin.css', __FILE__));
+}
+add_action('admin_enqueue_scripts', 'es_admin_style');
+
 // register custom meta tag field
 function es_register_meta() {
     global $post_ID;
@@ -108,10 +113,12 @@ function es_render_callback($attributes)
     $objectHeight = $attributes['objectHeight'];
     $objectWidth = $attributes['objectWidth'];
     $objectCaption = $attributes['objectCaption'];
+    $resourceId = $attributes['resourceId'];
 
-    //check for data
+    //check for data then generate the inline-html
     if ($nodeID){
-        $url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, get_option('es_repo_url'), get_option('es_appID'), get_locale());
+        //$url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, get_option('es_repo_url'), get_option('es_appID'), get_locale());
+        $url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, $resourceId);
         $url .=  '&height=' . urlencode($objectHeight) . '&width=' . urlencode($objectWidth);
 
         $inline = '<div class="eduContainer" data-type="esObject" data-url="' . get_site_url() .
@@ -131,3 +138,19 @@ function es_render_callback($attributes)
     }
     return false;
 }
+
+//if page or post is deleted permanently, delete the usage of each edusharing-object
+function delete_usage_on_post_delete($postid){
+    $blocks = parse_blocks(get_post($postid)->post_content);
+    //echo 'my fault';wp_die();
+    foreach ($blocks as $block) {
+        if ('es/edusharing-block' === $block['blockName']) {
+            $objectUrl = $block['attrs']['objectUrl'];
+            $resourceId = $block['attrs']['resourceId'];
+            edusharing_delete_instance($objectUrl, $postid, $resourceId);
+            echo '<script>console.log("delete_usage_on_post_delete")</script>';
+        }
+    }
+    return;
+}
+add_action('before_delete_post', 'delete_usage_on_post_delete');

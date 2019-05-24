@@ -73,17 +73,26 @@ registerBlockType( 'es/edusharing-block', {
         mediaType: {
             type: 'string',
         },
+        orgHeight: {
+            type: 'integer',
+        },
+        orgWidth: {
+            type: 'integer',
+        },
         objectHeight: {
-            type: 'string',
+            type: 'integer',
         },
         objectWidth: {
-            type: 'string',
+            type: 'integer',
         },
         objectAlign: {
             type: 'string',
         },
         objectCaption: {
             type: 'string',
+        },
+        resourceId: {
+            type: 'integer',
         },
         hideObj: {
             type: 'string',

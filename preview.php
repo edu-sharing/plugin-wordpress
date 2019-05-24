@@ -14,7 +14,7 @@ require_once("../../../wp-load.php");
 
 $user = wp_get_current_user()->ID;
 if($user === 0){
-    echo 'fehler';
+    echo 'no permission';
     exit();
 }
 
@@ -35,9 +35,8 @@ $post_id = get_param('post_id');
 $objectUrl = get_param('objectUrl');
 $objectVersion = get_param('objectVersion');
 $repoID = get_param('repoID');
+$resourceId = get_param('resourceId');
 
-
-$resourceid = $post_id;
 
 
 $previewservice = get_option('es_repo_url') . '/' . 'preview';
@@ -50,7 +49,7 @@ $url .= '&courseId=' . $post_id;
 $url .= '&repoId=' . edusharing_get_repository_id_from_url($objectUrl);
 $url .= '&proxyRepId=' . $repoID;
 $url .= '&nodeId=' . edusharing_get_object_id_from_url($objectUrl);
-$url .= '&resourceId=' . $resourceid;
+$url .= '&resourceId=' . $resourceId;
 $url .= '&version=' . $objectVersion;
 $sigdata = get_option('es_appID') . $time . edusharing_get_object_id_from_url($objectUrl);
 $sig = urlencode(edusharing_get_signature($sigdata));
