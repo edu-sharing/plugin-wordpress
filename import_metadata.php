@@ -138,17 +138,16 @@ if (!empty($metadataurl)) {
 
         $entrys = $xml->getElementsByTagName('entry');
         foreach ($entrys as $entry) {
-            //echo ('es_repo_'.$entry->getAttribute('key').': '.$entry->nodeValue.'<br>');
             if(get_option('es_repo_'.$entry->getAttribute('key'))){
                 if($entry->getAttribute('key') == 'usagewebservice_wsdl'){
                     update_option('es_repo_url', substr_replace($entry->nodeValue,'', -20));
                     update_option('es_repo_'.$entry->getAttribute('key'), $entry->nodeValue);
                 }
-                //echo ('IMPORTED: es_repo_'.$entry->getAttribute('key').': '.$entry->nodeValue.'<br>');
                 update_option('es_repo_'.$entry->getAttribute('key'), $entry->nodeValue);
             }
         }
 
+        echo 'Import sucessfull. Please reload your settings-page.';
         exit();
     } catch (Exception $e) {
         echo $e->getMessage();

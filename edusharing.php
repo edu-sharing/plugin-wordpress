@@ -2,11 +2,12 @@
 
 /**
  * Plugin Name: Edusharing
- * Plugin URI:  https://example.com/plugins/the-basics/
  * Description: Adds a Edusharing-Block
  * Version:     1.0
  * Author:      metaVentis GmbH
  * Author URI:  http://metaventis.com
+ * Text Domain: edusharing
+ * Domain Path: /languages
  * License:     GNU GPL v3 or later
  * License URI: http://www.gnu.org/copyleft/gpl.html
  */
@@ -27,6 +28,7 @@ wp_register_script( 'edu', plugins_url('/edu.js', __FILE__), array('jquery'));
 wp_enqueue_script( 'edu' );
 
 
+
 /**
  * Enqueue the block's assets for the editor.
  *
@@ -36,33 +38,46 @@ wp_enqueue_script( 'edu' );
  *
  * @since 1.0.0
  */
-function es_block_enqueue()
-{
-    wp_enqueue_script(
-        'es-edusharing-block', // Unique handle.
-        plugins_url('/build/index.js', __FILE__), // Block.js: We register the block here.
-        array('wp-editor', 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components'), // Dependencies, defined above.
-        filemtime(plugin_dir_path(__FILE__) . '/build/index.js') // filemtime — Gets file modification time.
+function es_block_init() {
+    wp_register_script(
+        'es-edusharing-block',
+        plugins_url('/build/index.js', __FILE__),
+        array( 'wp-editor', 'wp-blocks', 'wp-i18n', 'wp-element', 'wp-components' ),
+        filemtime(plugin_dir_path(__FILE__) . '/build/index.js')
     );
 
-
+    register_block_type( 'es/edusharing-block', array(
+        'render_callback' => 'es_render_callback',
+        'editor_script' => 'es-edusharing-block'
+    ) );
 }
-add_action('enqueue_block_editor_assets', 'es_block_enqueue');
+add_action( 'init', 'es_block_init' );
 
+//load translations
+function edusharing_load_plugin_textdomain() {
+    load_plugin_textdomain( 'edusharing', FALSE, basename( dirname( __FILE__ ) ) . '/languages/' );
+}
+add_action( 'plugins_loaded', 'edusharing_load_plugin_textdomain' );
 
-function es_block_styles_example_enqueue()
+function es_set_script_translations()
+{
+    wp_set_script_translations( 'es-edusharing-block', 'edusharing', plugin_dir_path( __FILE__ ) . 'languages' );
+}
+add_action('init', 'es_set_script_translations');
+
+function es_block_styles_enqueue()
 {
     wp_enqueue_style(
         'es-block-styles-example-style', // Handle.
-        plugins_url('style.css', __FILE__), // style.css: This file styles the block on the frontend.
+        plugins_url('/css/style.css', __FILE__), // style.css: This file styles the block.
         array(), // Dependencies, defined above.
-        filemtime(plugin_dir_path(__FILE__) . 'style.css') // filemtime — Gets file modification time.
+        filemtime(plugin_dir_path(__FILE__) . '/css/style.css') // filemtime — Gets file modification time.
     );
 }
-add_action('enqueue_block_assets', 'es_block_styles_example_enqueue');
+add_action('enqueue_block_assets', 'es_block_styles_enqueue');
 
 function es_admin_style() {
-    wp_enqueue_style('es_admin_css', plugins_url('admin.css', __FILE__));
+    wp_enqueue_style('es_admin_css', plugins_url('/css/admin.css', __FILE__));
 }
 add_action('admin_enqueue_scripts', 'es_admin_style');
 
@@ -91,11 +106,7 @@ function es_register_meta() {
 add_action( 'rest_api_init', 'es_register_meta' );
 
 
-//register render-callback for the frontend
-register_block_type('es/edusharing-block', array(
-        'render_callback' => 'es_render_callback',
-    )
-);
+
 
 //render frontend
 function es_render_callback($attributes)
@@ -114,10 +125,10 @@ function es_render_callback($attributes)
     $objectWidth = $attributes['objectWidth'];
     $objectCaption = $attributes['objectCaption'];
     $resourceId = $attributes['resourceId'];
+    $align = $attributes['align'];
 
     //check for data then generate the inline-html
     if ($nodeID){
-        //$url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, get_option('es_repo_url'), get_option('es_appID'), get_locale());
         $url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, $resourceId);
         $url .=  '&height=' . urlencode($objectHeight) . '&width=' . urlencode($objectWidth);
 
@@ -127,13 +138,19 @@ function es_render_callback($attributes)
             '&mimetype=' . urlencode($mimeType) .
             '&mediatype=' . urlencode($mediaType) .
             '&caption=' . urlencode($objectCaption) .
+            '&width=' . urlencode($objectWidth) .
             '"><div class="edusharing_spinner_inner"><div class="edusharing_spinner1"></div></div>' .
             '<div class="edusharing_spinner_inner"><div class="edusharing_spinner2"></div></div>'.
             '<div class="edusharing_spinner_inner"><div class="edusharing_spinner3"></div></div>'.
             'edu sharing object</div>';
 
+        if($mediaType == 'link' || $mediaType == 'file-pdf'){
+            return '<div class="eduObject">
+                <div class="esLink '.$align.'">'.$inline.'</div>
+            </div>';
+        }
         return '<div class="eduObject">
-                <div class="'.$attributes['objectAlign'].'">'.$inline.'</div>
+                <div class="'.$align.'">'.$inline.'</div>
             </div>';
     }
     return false;
@@ -141,14 +158,15 @@ function es_render_callback($attributes)
 
 //if page or post is deleted permanently, delete the usage of each edusharing-object
 function delete_usage_on_post_delete($postid){
-    $blocks = parse_blocks(get_post($postid)->post_content);
-    //echo 'my fault';wp_die();
-    foreach ($blocks as $block) {
-        if ('es/edusharing-block' === $block['blockName']) {
-            $objectUrl = $block['attrs']['objectUrl'];
-            $resourceId = $block['attrs']['resourceId'];
-            edusharing_delete_instance($objectUrl, $postid, $resourceId);
-            echo '<script>console.log("delete_usage_on_post_delete")</script>';
+    //check if post is autosafe
+    if(!wp_is_post_autosave( $postid )){
+        $blocks = parse_blocks(get_post($postid)->post_content);
+        foreach ($blocks as $block) {
+            if ('es/edusharing-block' === $block['blockName']) {
+                $objectUrl = $block['attrs']['objectUrl'];
+                $resourceId = $block['attrs']['resourceId'];
+                edusharing_delete_instance($objectUrl, $postid, $resourceId);
+            }
         }
     }
     return;

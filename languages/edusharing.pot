@@ -1,0 +1,90 @@
+# Copyright (C) 2019 metaVentis GmbH
+# This file is distributed under the same license as the Edusharing plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Edusharing 1.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/edusharing\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2019-05-28T09:30:58+02:00\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: WP-CLI 2.2.0\n"
+"X-Domain: edusharing\n"
+
+#. Plugin Name of the plugin
+msgid "Edusharing"
+msgstr ""
+
+#. Description of the plugin
+msgid "Adds a Edusharing-Block"
+msgstr ""
+
+#. Author of the plugin
+msgid "metaVentis GmbH"
+msgstr ""
+
+#. Author URI of the plugin
+msgid "http://metaventis.com"
+msgstr ""
+
+#: optionsPage.php:73
+#: optionsPage.php:82
+msgid "Edu-Sharing Einstellungen"
+msgstr ""
+
+#: optionsPage.php:85
+msgid "Mit Heimat-Repositorium verbinden:"
+msgstr ""
+
+#: optionsPage.php:86
+msgid "Dies füllt automatisch viele der Einstellungen aus."
+msgstr ""
+
+#: optionsPage.php:88
+msgid "Repositorium verbinden"
+msgstr ""
+
+#: optionsPage.php:93
+msgid "Plugin Einstellungen"
+msgstr ""
+
+#: optionsPage.php:113
+msgid "Repository Einstellungen"
+msgstr ""
+
+#: optionsPage.php:161
+msgid "Authentication properties"
+msgstr ""
+
+#: optionsPage.php:197
+msgid "Gast Einstellungen"
+msgstr ""
+
+#: optionsPage.php:200
+msgid "Gast-Option"
+msgstr ""
+
+#: build/index.js:705
+#: src/es-edit.js:319
+msgid "Öffne das Repository um ein Edusharing-Objekt einzufügen"
+msgstr ""
+
+#: build/index.js:709
+#: build/index.js:782
+#: src/es-edit.js:323
+#: src/es-edit.js:418
+msgid "Öffne Repository"
+msgstr ""
+
+#: build/index.js:723
+#: src/es-edit.js:345
+msgid "Edusharing Einstellungen"
+msgstr ""
+
+#: build/index.js:778
+#: src/es-edit.js:414
+msgid "Edusharing-Objekt ändern:"
+msgstr ""

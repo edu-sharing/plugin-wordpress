@@ -18,13 +18,13 @@ if($useCase == 'setUsage'){
     if ( ! $id ) {
         throw new Exception('Error: set_usage');
     }
-    echo 'Usage set';
+    echo 'Usage set for resourceId: '.$resourceId;
 }elseif ($useCase == 'deleteUsage'){
     $post_ID = $json_obj['post_id'];
     $objectUrl = $json_obj['objectUrl'];
     $resourceId = $json_obj['resourceId'];
     edusharing_delete_instance($objectUrl, $post_ID, $resourceId);
-    echo 'Usage deleted';
+    echo 'Usage deleted for resourceId: '.$resourceId;
 }elseif ($useCase == 'getTicket'){
     $post_ID = $json_obj['post_id'];
     update_post_meta( $post_ID, 'es_repo_ticket', get_repo_ticket() );

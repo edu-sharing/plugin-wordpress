@@ -19,7 +19,6 @@ if($user === 0){
 }
 
 function get_param($parname) {
-
     // POST has precedence.
     if (isset($_POST[$parname])) {
         $param = $_POST[$parname];
@@ -36,11 +35,7 @@ $objectUrl = get_param('objectUrl');
 $objectVersion = get_param('objectVersion');
 $repoID = get_param('repoID');
 $resourceId = get_param('resourceId');
-
-
-
 $previewservice = get_option('es_repo_url') . '/' . 'preview';
-
 $time = round(microtime(true) * 1000);
 
 $url = $previewservice;

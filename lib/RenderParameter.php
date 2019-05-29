@@ -59,4 +59,3 @@ class mod_edusharing_render_parameter {
         return $dom->saveXML();
     }
 }
-

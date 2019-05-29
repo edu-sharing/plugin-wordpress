@@ -4,7 +4,6 @@
  */
 import {
     Button,
-    IconButton,
     Icon,
     PanelBody,
     TextareaControl,
@@ -15,17 +14,13 @@ import {
 } from '@wordpress/components';
 
 import {
-    BlockAlignmentToolbar,
-    BlockControls,
     BlockIcon,
     InspectorControls,
 } from '@wordpress/block-editor';
 
 import classnames from 'classnames';
-
 import { compose } from '@wordpress/compose';
 import { withSelect } from '@wordpress/data';
-
 import { Component } from '@wordpress/element';
 import { __, sprintf } from '@wordpress/i18n';
 
@@ -43,12 +38,9 @@ class esEdit extends Component {
         super( ...arguments );
         this.toggleIsEditing = this.toggleIsEditing.bind( this );
         this.toggleFocus = this.toggleFocus.bind( this );
-        this.updateAlignment = this.updateAlignment.bind( this );
         this.updateWidth = this.updateWidth.bind( this );
         this.updateHeight = this.updateHeight.bind( this );
         this.updateDimensions = this.updateDimensions.bind( this );
-        //this.setUsage = this.setUsage.bind(this);
-        //this.deleteUsage = this.deleteUsage.bind(this);
 
         this.state = {
             isEditing: ! attributes.previewImg,
@@ -59,22 +51,22 @@ class esEdit extends Component {
     componentDidMount() {
         const { attributes, setAttributes } = this.props;
 
+        //for existing objects, switch to the preview url. this allows viewing of the object without permissions.
         if(attributes.previewUrl){
             setAttributes( { previewImg: attributes.previewUrl } );
         }
     }
 
     componentDidUpdate( prevProps ) {
-
     }
 
     componentWillUnmount() {
         const { attributes, setAttributes } = this.props;
         //deleteUsage
         this.deleteUsage(attributes.objectUrl, attributes.resourceId);
-
     }
 
+    //toggles the placeholder
     toggleIsEditing() {
         this.setState( {
             isEditing: ! this.state.isEditing,
@@ -86,6 +78,7 @@ class esEdit extends Component {
         }
     }
 
+    //toggles the handles for resizing
     toggleFocus() {
         this.setState( {
             isFocus: 'test',
@@ -95,10 +88,6 @@ class esEdit extends Component {
         } else {
             //speak( __( 'You are now editing the image in the image block.' ) );
         }
-    }
-
-    updateAlignment( nextAlign ) {
-        this.props.setAttributes( { objectAlign: nextAlign } );
     }
 
     updateWidth( width ) {
@@ -117,40 +106,6 @@ class esEdit extends Component {
         return () => {
             this.props.setAttributes( { objectWidth, objectHeight } );
         };
-    }
-
-    setUsage(url, version, resourceId){
-        const { attributes, setAttributes } = this.props;
-        const post_id = wp.data.select("core/editor").getCurrentPostId();
-        const post_title = wp.data.select("core/editor").getCurrentPost().title;
-        const plugin_url = wp.data.select("core/editor").getPermalinkParts().prefix + 'wp-content/plugins/edusharing/';
-
-        //call setUsage.php
-        fetch(plugin_url + 'fetch.php', {
-            method : 'post',
-            mode:    'cors',
-            headers: {
-                'Content-Type': 'application/json',  // sent request
-                'Accept':       'application/json'   // expected data sent back
-            },
-            body: JSON.stringify({
-                useCase: 'setUsage',
-                post_id: post_id,
-                post_title: post_title,
-                objectUrl: url,
-                objectVersion: version,
-                resourceId: resourceId
-            })
-        })
-            .then(function(response) {
-                if (response.status >= 200 && response.status < 300) {
-                    return response.text()
-                }
-                throw new Error(response.statusText)
-            })
-            .then(function(response) {
-                console.log(response);
-            })
     }
 
     deleteUsage(objectUrl, resourceId){
@@ -201,8 +156,8 @@ class esEdit extends Component {
                 const post_title = wp.data.select("core/editor").getCurrentPost().title;
                 const plugin_url = wp.data.select("core/editor").getPermalinkParts().prefix + 'wp-content/plugins/edusharing/';
 
-                if(attributes.objectUrl && attributes.objectUrl !== node.objectUrl){
-                    //delete usage from the old object
+                //if there is an old object delete it's usage
+                if(attributes.objectUrl){
                     fetch(plugin_url + 'fetch.php', {
                         method : 'post',
                         mode:    'cors',
@@ -227,40 +182,43 @@ class esEdit extends Component {
                             console.log(response);
                         })
                 }
+
                 let height;
                 let width;
                 const url = node.objectUrl;
                 const version = node.contentVersion;
                 const repoID = node.parent.repo;
                 if(!node.properties["ccm:height"]){
-                    height = '160';
-                    width = '120';
+                    height = '';
+                    width = '';
                 }else{
                     height = node.properties["ccm:height"][0];
                     width = node.properties["ccm:width"][0];
                 }
-                const resourceId = Math.floor(Math.random() * 10000) + post_id;
-                console.log('resourceId: '+resourceId);
+                //generate hopefully unique resourceID
+                const resourceId = post_id.toString() + (Math.floor(Math.random() * 10000) + 1000);
+                console.log('resourceID: '+resourceId);
                 const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID + '&resourceId=' + resourceId;
-
+                //set the attributes from the node object
                 setAttributes({
                     previewImg: node.preview.url,
                     previewUrl: previewUrl,
                     nodeID: node.ref.id,
-                    objectUrl: node.objectUrl,
+                    objectUrl: url,
                     objectVersion: node.contentVersion,
                     objectHeight: parseInt( height, 10 ),
                     objectWidth: parseInt( width, 10 ),
                     orgHeight: parseInt( height, 10 ),
                     orgWidth: parseInt( width, 10 ),
                     objectTitle: node.title,
-                    resourceId: resourceId,
+                    objectCaption: node.description,
+                    resourceId: parseInt(resourceId, 10),
                     mimeType: node.mimetype,
                     mediaType: node.mediatype,
-                    hideObj: 'block',
+                    hideObj: 'block', //toggles the close-button on the placeholder
                 });
 
-                //call setUsage
+                //set new usage
                 fetch(plugin_url + 'fetch.php', {
                     method : 'post',
                     mode:    'cors',
@@ -286,7 +244,7 @@ class esEdit extends Component {
                     .then(function(response) {
                         console.log(response);
                     })
-
+                //remove event listener so only this block updates
                 window.removeEventListener('message', handleRepo, false );
             }
         }, false);
@@ -294,8 +252,6 @@ class esEdit extends Component {
         let url = repoDomain + '/components/search?&applyDirectories=true&reurl=WINDOW&ticket=' + repoTicket;
         window.win = window.open(url);
     }
-
-
 
     render() {
         const {isEditing} = this.state;
@@ -307,7 +263,6 @@ class esEdit extends Component {
             className,
         } = this.props;
         const {
-            objectAlign,
             repoDomain,
             repoTicket,
             previewImg,
@@ -319,28 +274,19 @@ class esEdit extends Component {
         const currentWidth = objectWidth;
         const currentHeight = objectHeight;
 
-        const controls = (
-            <BlockControls>
-                <BlockAlignmentToolbar
-                    value={objectAlign}
-                    onChange={this.updateAlignment}
-                />
-            </BlockControls>
-        );
-
         const es_placeholder = (
             <Placeholder
-                class='es-placeholder'
+                className='es-placeholder'
                 icon={ <BlockIcon icon={ edusharing_icon } /> }
                 label="Edusharing"
             >
-                <div class="es">
-                    <button class='close' style={{display: attributes.hideObj}} onClick={ this.toggleIsEditing }>X</button>
-                    <p class='es-placeholder'>{__('Öffne das Repository um ein Edusharing-Objekt einzufügen', 'es-edusharing-block')}</p>
+                <div className='es'>
+                    <button className='close' style={{display: attributes.hideObj}} onClick={ this.toggleIsEditing }>X</button>
+                    <p className='es-placeholder'>{__('Öffne das Repository um ein Edusharing-Objekt einzufügen', 'edusharing')}</p>
                     <Button onClick={ () => {
                         this.open_repo(repoTicket, repoDomain)
                     }}>
-                        {__('Öffne Repository', 'es-edusharing-block')}
+                        {__('Öffne Repository', 'edusharing')}
                     </Button>
                 </div>
             </Placeholder>
@@ -350,7 +296,6 @@ class esEdit extends Component {
         if ( isEditing || ! previewImg ) {
             return (
                 <React.Fragment>
-                    { controls }
                     { es_placeholder }
                 </React.Fragment>
             );
@@ -362,17 +307,18 @@ class esEdit extends Component {
 
         const getInspectorControls = (width, height) => (
             <InspectorControls>
-                <div class='es'>
-                <PanelBody title={ __( 'Edusharing Settings' ) }>
+                <div className='es'>
+                <PanelBody title={ __( 'Edusharing Einstellungen', 'edusharing') }>
                     <TextControl
-                        label={ __( 'Title' ) }
+                        label={ __( 'Titel' ) }
                         value={ objectTitle }
                         onChange={ function(changes){
                             setAttributes({ objectTitle: changes });
                         } }
                     />
-
-                    <div className="block-library-image__dimensions">
+                    {/*only show resize options when object has a size*/}
+                    { width && (
+                        <div className="block-library-image__dimensions">
                             <p className="block-library-image__dimensions__row">
                                 { __( 'Image Dimensions' ) }
                             </p>
@@ -399,9 +345,6 @@ class esEdit extends Component {
                                     { [ 25, 50, 75, 100 ].map( ( scale ) => {
                                         const scaledWidth = Math.round( width * ( scale / 100 ) );
                                         const scaledHeight = Math.round( height * ( scale / 100 ) );
-
-                                        //const isCurrent = objectWidth === scaledWidth && objectHeight === scaledHeight;
-
                                         return (
                                             <Button
                                                 key={ scale }
@@ -421,6 +364,7 @@ class esEdit extends Component {
                                 </Button>
                             </div>
                         </div>
+                    )}
 
                     <TextareaControl
                         label="Caption"
@@ -430,11 +374,11 @@ class esEdit extends Component {
                         } }
                     />
                     <div>
-                        <p className='es-placeholder'>{__('Edusharing-Objekt ändern:', 'es-edusharing-block')}</p>
+                        <p className='es-placeholder'>{__('Edusharing-Objekt ändern:', 'edusharing')}</p>
                         <Button onClick={() => {
                             this.open_repo(repoTicket, repoDomain)
                         }}>
-                            {__('Öffne Repository', 'es-edusharing-block')}
+                            {__('Öffne Repository', 'edusharing')}
                         </Button>
                     </div>
                 </PanelBody>
@@ -446,13 +390,10 @@ class esEdit extends Component {
             return(
                 <React.Fragment>
                     <div className={'eduObject'}>
-                        { controls }
-                        { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
-                        <div className={'esLink'} onDoubleClick={ this.toggleIsEditing }>
-                            <div className={'esTitle'}>
-                                <Icon icon="admin-links" />
-                                {attributes.objectTitle}
-                            </div>
+                        { getInspectorControls() }
+                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon icon="admin-links" />
+                            <p>{attributes.objectTitle}</p>
                         </div>
                         <p>{attributes.objectCaption}</p>
                     </div>
@@ -464,13 +405,10 @@ class esEdit extends Component {
             return(
                 <React.Fragment>
                     <div className={'eduObject'}>
-                        { controls }
-                        { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
-                        <div className={'esLink'} onDoubleClick={ this.toggleIsEditing }>
-                            <div className={'esTitle'}>
-                                <Icon icon="media-document" />
-                                {attributes.objectTitle}
-                            </div>
+                        { getInspectorControls() }
+                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon icon="media-document" />
+                            <p>{attributes.objectTitle}</p>
                         </div>
                         <p>{attributes.objectCaption}</p>
                     </div>
@@ -478,10 +416,24 @@ class esEdit extends Component {
             )
         }
 
-        return (
+        if((attributes.mimeType == 'directory' || attributes.mediaType == 'folder')){
+            return (
+                <div className={'eduObject'}>
+                    { getInspectorControls() }
+                    <div className={'folder esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                        <Icon className={'folderIcon'} icon="arrow-right-alt2" />
+                        <Icon icon="portfolio" />
+                        <p>{attributes.objectTitle}</p>
+                    </div>
+                    <p>{attributes.objectCaption}</p>
 
+                </div>
+            );
+        }
+
+        //normal return for resizable objects
+        return (
             <div className={'eduObject'}>
-                { controls }
                 { getInspectorControls(attributes.orgWidth, attributes.orgHeight) }
                 <figure className={ classes + ' wp-block-image'}>
                     <ResizableBox

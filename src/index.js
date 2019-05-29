@@ -29,8 +29,10 @@ const edusharing_icon = el('svg', { width: 20, height: 20 },
 registerBlockType( 'es/edusharing-block', {
     title: __( 'Edu-Sharing' ),
     icon: edusharing_icon,
-    category: 'common',
-
+    category: 'embed',
+    supports: {
+        align: true,
+    },
     attributes: {
         repoDomain: {
             type: 'string',
@@ -103,9 +105,6 @@ registerBlockType( 'es/edusharing-block', {
     edit,
 
     save() {
-        /*return (
-            <p>Edu-Sharing Element</p>
-        );*/
         return null
     },
 

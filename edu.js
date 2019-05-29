@@ -4,7 +4,6 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 (function(jquery) {
 
     !function () {
@@ -17,16 +16,12 @@
             var g = f.top + c - b, h = f.bottom + c + b;
             return h > c && e > g
         }
-
         jquery.expr[":"]["near-viewport"] = function (b, c, d) {
             var e = parseInt(d[3]) || 0;
             return a(b, e)
         }
     }();
-
     jquery.ajaxSetup({cache: false});
-
-
 
     var videoFormat = 'webm';
     var v = document.createElement('video');
@@ -36,11 +31,16 @@
 
     function renderEsObject(esObject, wrapper) {
         var url = esObject.attr("data-url") + '&videoFormat=' + videoFormat;
+        let width = 'auto';
+        const urlParams = new URLSearchParams(url);
+        if(urlParams.get('width')){
+            width = urlParams.get('width');
+        }
         if (typeof wrapper == 'undefined')
             var wrapper = esObject.parent();
         //alert(url);
         jquery.get(url, function (data) {
-            wrapper.html('').append(data).css({ width: 'auto', height: 'auto'});
+            wrapper.html('').append(data).css({ width: width, height: 'auto'});
             if (data.toLowerCase().indexOf('data-view="lock"') >= 0)
                 setTimeout(function () {
                     renderEsObject(esObject, wrapper);
@@ -48,8 +48,6 @@
         });
         esObject.removeAttr("data-type");
     }
-
-
 
     jquery(window).scroll(function () {
         jquery("div[data-type='esObject']:near-viewport(400)").each(function () {

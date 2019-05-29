@@ -26,6 +26,7 @@ function get_param($parname) {
 }
 
 $resid = get_param('resId'); // edusharing instance ID
+$childobject_id = get_param('childobject_id');
 
 if ($resid) {
     //$edusharing  = $DB->get_record(EDUSHARING_TABLE, array('id'  => $resid), '*', MUST_EXIST);
@@ -43,6 +44,9 @@ $redirecturl .= '&signed=' . urlencode($data);
 $redirecturl .= '&closeOnBack=true';
 $cclib = new mod_edusharing_web_service_factory();
 $redirecturl .= '&ticket=' . urlencode(base64_encode(edusharing_encrypt_with_repo_public($cclib -> edusharing_authentication_get_ticket())));
+
+if($childobject_id)
+    $redirecturl .= '&childobject_id=' . $childobject_id;
 
 wp_redirect( $redirecturl );
 exit;

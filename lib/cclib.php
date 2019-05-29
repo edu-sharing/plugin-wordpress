@@ -106,7 +106,6 @@ class mod_edusharing_web_service_factory {
     }
 }
 
-
 /**
  * Get the parameter for authentication
  * @return string
@@ -116,10 +115,6 @@ function edusharing_get_auth_key() {
     global $USER, $SESSION;
 
     $user = wp_get_current_user();
-
-    //$edusharing->user = $user->user_login;
-    //$edusharing->userMail = $user->user_email;
-
 
     // Set by external sso script.
     if (isset($SESSION -> edusharing_sso) && !empty($SESSION -> edusharing_sso)) {
@@ -138,7 +133,6 @@ function edusharing_get_auth_key() {
     }
 
     $eduauthkey = get_option('es_auth_key');
-    //echo '<script>console.log("user: '.$USER->username.'")</script>';
 
     if($eduauthkey == 'id')
         return $user->user_login;
@@ -149,7 +143,6 @@ function edusharing_get_auth_key() {
     if(isset($USER->profile[$eduauthkey]))
         return $USER->profile[$eduauthkey];
     return $user->user_login;
-    //return $eduauthkey;
 }
 
 
@@ -163,7 +156,6 @@ function edusharing_get_auth_data($context) {
     global $USER, $CFG, $SESSION;
 
     $user = wp_get_current_user();
-    //var_dump($user->ID);die();
 
     // Set by external sso script.
     if (isset($SESSION -> edusharing_sso) && !empty($SESSION -> edusharing_sso)) {
@@ -177,7 +169,6 @@ function edusharing_get_auth_data($context) {
         if (empty($eduauthparamnameuserid)) {
             $eduauthparamnameuserid = '';
         }
-        //echo '<script>console.log("user: '.$eduauthparamnameuserid.'")</script>';
 
         $eduauthparamnamelastname = get_option('es_auth_lastname');
         if (empty($eduauthparamnamelastname)) {
@@ -199,16 +190,11 @@ function edusharing_get_auth_data($context) {
         $eduauthaffiliationname = get_option('es_auth_affiliation_name');
 
         $guestoption = get_option('es_guest_option');
-        //echo '<script>console.log("guest-option: '.$guestoption.'")</script>';
-        //if ($guestoption == 1 || $context == mod_edusharing_web_service_factory::CONTEXT_VIEWER) {
         if ($guestoption == 1 || $user->ID == 0) {
             $guestid = get_option('es_guest_id');
             if (empty($guestid)) {
                 $guestid = 'esguest';
             }
-
-            echo '<script>console.log("guest?: '.$guestid.'")</script>';
-
             $authparams = array(
                 array('key'  => $eduauthparamnameuserid, 'value'  => $guestid),
                 array('key'  => $eduauthparamnamelastname, 'value'  => ''),
@@ -218,8 +204,6 @@ function edusharing_get_auth_data($context) {
                 array('key'  => 'affiliationname', 'value' => $eduauthaffiliationname)
             );
         } else {
-
-            //echo '<script>console.log("user?: '.edusharing_get_auth_key().'")</script>';
             $authparams = array(
                 array('key'  => $eduauthparamnameuserid, 'value'  => edusharing_get_auth_key()),
                 array('key'  => $eduauthparamnamelastname, 'value'  => $user->user_lastname),
@@ -230,11 +214,6 @@ function edusharing_get_auth_data($context) {
             );
         }
     }
-
-    /*if (get_config('edusharing', 'EDU_AUTH_CONVEYGLOBALGROUPS') == 'yes' ||
-        get_config('edusharing', 'EDU_AUTH_CONVEYGLOBALGROUPS') == '1') {
-        $authparams[] = array('key'  => 'globalgroups', 'value'  => edusharing_get_user_cohorts());
-    }*/
     return $authparams;
 }
 
@@ -271,9 +250,7 @@ function edusharing_get_object_id_from_url($objecturl) {
         trigger_error(('Error: get_object_id_from_url'), E_USER_WARNING);
         return false;
     }
-
     $objectid = str_replace('/', '', $objectid);
-
     return $objectid;
 }
 
@@ -302,7 +279,6 @@ function edusharing_encrypt_with_repo_public($data) {
  * @return string
  */
 function edusharing_get_signature($data) {
-    //error_log(print_r('Signatur-Fehler: '.get_option('es_privateKey'), TRUE));
     $privkey = get_option('es_privateKey');
     $pkeyid = openssl_get_privatekey($privkey);
     openssl_sign($data, $signature, $pkeyid);
@@ -350,7 +326,6 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
                 $edusharing->object_version = 0;
             }
         } else {
-
             if (isset($edusharing->window_versionshow) && $edusharing->window_versionshow == 'current') {
                 $edusharing->object_version = $edusharing->window_version;
             } else {
@@ -377,7 +352,6 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
             "resourceId"  => $resourceId,
             "xmlParams"  => $xml,
         );
-        //var_dump($params);die();
         $setusage = $client->setUsage($params);
         if (isset($updateversion) && $updateversion === true) {
             $edusharing->object_version = $setusage->setUsageReturn->usageVersion;
@@ -389,76 +363,7 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
         trigger_error($e->getMessage());
         return false;
     }
-
     return $id;
-}
-
-/**
- * Given an object containing all the necessary data,
- * (defined by the form in mod_form.php) this function
- * will update an existing instance with new data.
- *
- * @param stdClass $edusharing An object from the form in mod_form.php
- * @return boolean Success/Fail
- */
-function edusharing_update_instance(stdClass $edusharing) {
-
-    global $CFG, $COURSE, $DB, $SESSION, $USER;
-
-    // FIX: when editing a moodle-course-module the $edusharing->id will be named $edusharing->instance
-    if ( ! empty($edusharing->instance) ) {
-        $edusharing->id = $edusharing->instance;
-    }
-
-    $edusharing->timemodified = time();
-
-    // Load previous state.
-    $memento = $DB->get_record(EDUSHARING_TABLE, array('id'  => $edusharing->id));
-    if ( ! $memento ) {
-        throw new Exception(get_string('error_loading_memento', 'edusharing'));
-    }
-
-    // You may have to add extra stuff in here.
-    $edusharing = edusharing_postprocess($edusharing);
-
-    $xml = edusharing_get_usage_xml($edusharing);
-
-    try {
-        $connectionurl = get_config('edusharing', 'repository_usagewebservice_wsdl');
-        if (!$connectionurl) {
-            trigger_error(get_string('error_missing_usagewsdl', 'edusharing'), E_USER_WARNING);
-        }
-
-        $client = new mod_edusharing_sig_soap_client($connectionurl, array());
-
-        $params = array(
-            "eduRef"  => $edusharing->object_url,
-            "user"  => edusharing_get_auth_key(),
-            "lmsId"  => get_config('edusharing', 'application_appid'),
-            "courseId"  => $edusharing->course,
-            "userMail"  => $edusharing->userMail,
-            "fromUsed"  => '2002-05-30T09:00:00',
-            "toUsed"  => '2222-05-30T09:00:00',
-            "distinctPersons"  => '0',
-            "version"  => $memento->object_version,
-            "resourceId"  => $edusharing->id,
-            "xmlParams"  => $xml,
-        );
-
-        $setusage = $client->setUsage($params);
-        $edusharing->object_version = $memento->object_version;
-        // Throws exception on error, so no further checking required.
-        $DB->update_record(EDUSHARING_TABLE, $edusharing);
-    } catch (SoapFault $exception) {
-        // Roll back.
-        $DB->update_record(EDUSHARING_TABLE, $memento);
-
-        trigger_error($exception->getMessage(), E_USER_WARNING);
-
-        return false;
-    }
-
-    return true;
 }
 
 /**
@@ -510,12 +415,6 @@ function edusharing_get_usage_xml($edusharing) {
     $data4xml[1]["general"]['referencedInInstance'] = $edusharing->course;
 
     $data4xml[1]["specific"]['type'] = 'wordpress';
-    /*$data4xml[1]["specific"]['courseId'] = $edusharing->course;
-    $data4xml[1]["specific"]['courseFullname'] = $course->fullname;
-    $data4xml[1]["specific"]['courseShortname'] = $course->shortname;
-    $data4xml[1]["specific"]['courseSummary'] = $course->summary;
-    $data4xml[1]["specific"]['categoryId'] = $course->category;
-    $data4xml[1]["specific"]['categoryName'] = $category->name;*/
     $myxml  = new mod_edusharing_render_parameter();
     $xml = $myxml->edusharing_get_xml($data4xml);
     return $xml;
@@ -532,7 +431,6 @@ function get_repo_ticket(){
     }
     return $ticket;
 }
-
 
 /**
  * Generate redirection-url
@@ -551,27 +449,18 @@ function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectV
     }
 
     $url = get_option('es_repo_url') . 'renderingproxy';
-
     $url .= '?app_id='.urlencode(get_option('es_appID'));
-
     $url .= '&session='.urlencode(session_id());
-
     $repid = edusharing_get_repository_id_from_url($objectUrl);
     $url .= '&rep_id='.urlencode($repid);
-
     $url .= '&objectUrl='.urlencode($objectUrl);
-
     $url .= '&obj_id='.urlencode(edusharing_get_object_id_from_url($objectUrl));
-
     $url .= '&resource_id='.urlencode($resourceId);
     $url .= '&course_id='.urlencode($postID);
-
     $url .= '&display='.urlencode($displaymode);
-
     $url .= '&version=' . urlencode($objectVersion);
     $url .= '&locale=' . urlencode(get_locale()); //repository
     $url .= '&language=' . urlencode(get_locale()); //rendering service
-
     $url .= '&u='. rawurlencode(base64_encode(edusharing_encrypt_with_repo_public(edusharing_get_auth_key())));
 
     return $url;

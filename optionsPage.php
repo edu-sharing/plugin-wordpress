@@ -66,11 +66,17 @@ add_action( 'admin_init', 'es_register_settings' );
 
 if(!get_option('es_publicKey')){
     $sslkeypair = edusharing_get_ssl_keypair();
-    update_option('es_publicKey', $sslkeypair['publicKey']);
+    if (empty($sslkeypair['privateKey'])) { //is this usefull?
+        update_option('es_publicKey', 'Failed to generate SSL-key');
+        update_option('es_privateKey', 'Failed to generate SSL-key');
+    }else{
+        update_option('es_publicKey', $sslkeypair['publicKey']);
+        update_option('es_privateKey', $sslkeypair['privateKey']);
+    }
 }
 
 function es_register_options_page() {
-    add_options_page('Edu-Sharing Einstellungen', 'Edu-Sharing', 'manage_options', 'es-options', 'es_options_page');
+    add_options_page(__( 'Edu-Sharing Einstellungen', 'edusharing' ), 'Edu-Sharing', 'manage_options', 'es-options', 'es_options_page');
 }
 add_action('admin_menu', 'es_register_options_page');
 
@@ -79,18 +85,18 @@ function es_options_page()
 ?>
     <div class="es-settings">
     <?php screen_icon(); ?>
-    <h1><img src="<?php echo plugin_dir_url(__FILE__) . '/img/icon.svg'  ?>">Edu-Sharing Einstellungen</h1>
+    <h1><img src="<?php echo plugin_dir_url(__FILE__) . '/img/icon.svg'  ?>"><?php _e( 'Edu-Sharing Einstellungen', 'edusharing' ) ?></h1>
         <div class="es-connect-repo">
             <div>
-                <h3>Mit Heimat-Repositorium verbinden:</h3>
-                <p>Dies füllt automatisch viele der Einstellungen aus.</p>
+                <h3><?php _e( 'Mit Heimat-Repositorium verbinden:', 'edusharing' ); ?></h3>
+                <p><?php _e( 'Dies füllt automatisch viele der Einstellungen aus.', 'edusharing' ); ?></p>
             </div>
-            <a href="<?php echo plugin_dir_url(__FILE__) . '/import_metadata.php'  ?>" target="_blank">Repositorium verbinden</a>
+            <a href="<?php echo plugin_dir_url(__FILE__) . '/import_metadata.php'  ?>" target="_blank"><?php _e( 'Repositorium verbinden', 'edusharing' ); ?></a>
         </div>
         <div class="es-forms">
     <form method="post" action="options.php">
         <?php settings_fields( 'es_app_group' ); ?>
-        <h3>Application properties</h3>
+        <h3><?php _e( 'Plugin Einstellungen', 'edusharing' ); ?></h3>
         <table>
             <tr>
                 <th scope="row"><label for="es_appID">AppID</label></th>
@@ -110,7 +116,7 @@ function es_options_page()
 
         <form method="post" action="options.php">
         <?php settings_fields( 'es_repo_group' ); ?>
-        <h3>Repository properties</h3>
+        <h3><?php _e( 'Repository Einstellungen', 'edusharing' ); ?></h3>
         <table>
             <tr>
                 <th scope="row"><label for="es_repo_public_key">Public Key</label></th>
@@ -158,7 +164,7 @@ function es_options_page()
 
         <form method="post" action="options.php">
         <?php settings_fields( 'es_auth_group' ); ?>
-        <h3>Authentication properties</h3>
+        <h3><?php _e( 'Authentication properties', 'edusharing' ); ?></h3>
         <table>
             <tr>
                 <th scope="row"><label for="es_auth_key">EDU_AUTH_KEY</label></th>
@@ -194,10 +200,10 @@ function es_options_page()
 
         <form method="post" action="options.php">
         <?php settings_fields( 'es_guest_group' ); ?>
-        <h3>Guest properties</h3>
+        <h3><?php _e( 'Gast Einstellungen', 'edusharing' ); ?></h3>
         <table>
             <tr>
-                <th scope="row"><label for="es_guest_option">guest_options</label></th>
+                <th scope="row"><label for="es_guest_option"><?php _e( 'Gast-Option', 'edusharing' ); ?></label></th>
                 <td><input type="checkbox" name="es_guest_option" value="1" <?php checked(1, get_option('es_guest_option'), true); ?> /></td>
             </tr>
             <tr>

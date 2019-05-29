@@ -55,21 +55,13 @@ class filter_edusharing_edurender {
      * @param string $html
      */
     public function filter_edusharing_display($html, $url) {
-
-        //error_reporting(0);
-
-
         $parts = parse_url($url);
         parse_str($parts['query'], $param);
-
         $resid = $param['resource_id'];
         $objectUrl = $param['objectUrl'];
         $displaymode = $param['display'];
         $postID = $param['resource_id'];
         $objectVersion = $param['version'];
-
-        //var_dump($url);die();
-
 
         $html = str_replace(array("\n", "\r", "\n"), '', $html);
 
@@ -80,25 +72,16 @@ class filter_edusharing_edurender {
         $html = str_replace("{{{LMS_INLINE_HELPER_SCRIPT}}}",plugin_dir_url( __FILE__ ) . "inlineHelper.php?resId=" . $resid .
             "&objectURL=" . $objectUrl . "&display=" . $displaymode . "&postID=" . $postID . "&objectVersion=" . $objectVersion . "&", $html);
 
-
-        //var_dump('<!--'.$html.'-->');die();
-        //echo '<script>console.log("'.$html.'")</script>';
-
         $html = preg_replace("/<es:title[^>]*>.*<\/es:title>/Uims", get_param('title'), $html);
-
-        $caption = get_param('caption');//utf8_decode(optional_param('caption', '', PARAM_TEXT));
-        //$caption = $objectCaption;
+        $caption = get_param('caption');
         if($caption)
             $html .= '<p class="caption">' . $caption . '</p>';
-
         echo $html;
         exit();
     }
 }
 
-
 function get_param($parname) {
-
     // POST has precedence.
     if (isset($_POST[$parname])) {
         $param = $_POST[$parname];
@@ -110,15 +93,12 @@ function get_param($parname) {
     return $param;
 }
 
-
 $url = get_param('URL');
 $videoFormat = get_param('videoFormat');
 $title = get_param('title');
 
-//$url = required_param('URL', PARAM_NOTAGS);
 $parts = parse_url($url);
 parse_str($parts['query'], $query);
-
 
 $ts = $timestamp = round(microtime(true) * 1000);
 $url .= '&ts=' . $ts;
