@@ -21,7 +21,7 @@ $entry = $xml->addChild('entry', 'wordpress');
 $entry->addAttribute('key', 'subtype');
 $entry = $xml->addChild('entry', get_site_url());
 $entry->addAttribute('key', 'domain');
-$entry = $xml->addChild('entry', 'application_host');
+$entry = $xml->addChild('entry', get_option('es_repo_host'));
 $entry->addAttribute('key', 'host');
 $entry = $xml->addChild('entry', 'true');
 $entry->addAttribute('key', 'trustedclient');

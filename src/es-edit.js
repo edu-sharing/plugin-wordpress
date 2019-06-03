@@ -195,9 +195,13 @@ class esEdit extends Component {
                     height = node.properties["ccm:height"][0];
                     width = node.properties["ccm:width"][0];
                 }
+                let title = node.title;
+                if(!title){
+                    title = node.properties["cm:name"];
+                }
                 //generate hopefully unique resourceID
                 const resourceId = post_id.toString() + (Math.floor(Math.random() * 10000) + 1000);
-                console.log('resourceID: '+resourceId);
+                //console.log('resourceID: ' + resourceId);
                 const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID + '&resourceId=' + resourceId;
                 //set the attributes from the node object
                 setAttributes({
@@ -210,7 +214,7 @@ class esEdit extends Component {
                     objectWidth: parseInt( width, 10 ),
                     orgHeight: parseInt( height, 10 ),
                     orgWidth: parseInt( width, 10 ),
-                    objectTitle: node.title,
+                    objectTitle: title.toString(),
                     objectCaption: node.description,
                     resourceId: parseInt(resourceId, 10),
                     mimeType: node.mimetype,
@@ -392,6 +396,7 @@ class esEdit extends Component {
                     <div className={'eduObject'}>
                         { getInspectorControls() }
                         <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon className={'esIcon'} icon={edusharing_icon} />
                             <Icon icon="admin-links" />
                             <p>{attributes.objectTitle}</p>
                         </div>
@@ -407,6 +412,7 @@ class esEdit extends Component {
                     <div className={'eduObject'}>
                         { getInspectorControls() }
                         <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon className={'esIcon'} icon={edusharing_icon} />
                             <Icon icon="media-document" />
                             <p>{attributes.objectTitle}</p>
                         </div>
@@ -421,7 +427,8 @@ class esEdit extends Component {
                 <div className={'eduObject'}>
                     { getInspectorControls() }
                     <div className={'folder esTitle'} onDoubleClick={ this.toggleIsEditing }>
-                        <Icon className={'folderIcon'} icon="arrow-right-alt2" />
+                        <Icon className={'esIcon'} icon={edusharing_icon} />
+                        {/* <Icon className={'folderIcon'} icon="arrow-right-alt2" /> */}
                         <Icon icon="portfolio" />
                         <p>{attributes.objectTitle}</p>
                     </div>
@@ -467,7 +474,10 @@ class esEdit extends Component {
                         } }
                     >
                         <img src={ attributes.previewImg } height={objectHeight} width={objectWidth} onDoubleClick={ this.toggleIsEditing }/>
-                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>{attributes.objectTitle}</div>
+                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon className={'esIcon'} icon={edusharing_icon} />
+                            {attributes.objectTitle}
+                        </div>
                     </ResizableBox>
                     <p>{attributes.objectCaption}</p>
                 </figure>

@@ -85,6 +85,10 @@
     background: #f6f6f6;
 }
 
+.eduObject .esIcon{
+    margin-right: 10px;
+}
+
 .folder .folderIcon{
     color: #aaa;
     margin: 0 10px;

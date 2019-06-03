@@ -9,6 +9,8 @@ function es_register_settings() {
     register_setting( 'es_app_group', 'es_publicKey');
     add_option( 'es_privateKey');
     register_setting( 'es_app_group', 'es_privateKey');
+    add_option( 'es_repo_host', $_SERVER['SERVER_ADDR']);
+    register_setting( 'es_app_group', 'es_repo_host');
     //Repo Options
     add_option( 'es_repo_public_key', 'publicKey');
     register_setting( 'es_repo_group', 'es_repo_public_key');
@@ -32,10 +34,7 @@ function es_register_settings() {
     register_setting( 'es_repo_group', 'es_repo_usagewebservice_wsdl');
 
     add_option( 'es_repo_protocol', 'http');
-    register_setting( 'es_repo_group', 'es_repo_protocol');
-
-    add_option( 'es_repo_host');
-    register_setting( 'es_repo_group', 'es_repo_host');
+    register_setting( 'es_repo_group', 'es_repo_protocol');    
 
     add_option( 'es_repo_version', '4.2');
     register_setting( 'es_repo_group', 'es_repo_version');
@@ -110,6 +109,10 @@ function es_options_page()
                 <th scope="row"><label for="es_privateKey">Private Key</label></th>
                 <td><textarea id="es_privateKey" name="es_privateKey" rows="10" cols="30"/><?php echo get_option('es_privateKey'); ?></textarea></td>
             </tr>
+            <tr>
+                <th scope="row"><label for="es_repo_host">Host</label></th>
+                <td><input type="text" id="es_repo_host" name="es_repo_host" value="<?php echo get_option('es_repo_host'); ?>" /></td>
+            </tr>
         </table>
         <?php  submit_button(); ?>
         </form>
@@ -149,11 +152,7 @@ function es_options_page()
             <tr>
                 <th scope="row"><label for="es_repo_protocol">Protocol</label></th>
                 <td><input type="text" id="es_repo_protocol" name="es_repo_protocol" value="<?php echo get_option('es_repo_protocol'); ?>" /></td>
-            </tr>
-            <tr>
-                <th scope="row"><label for="es_repo_host">Host</label></th>
-                <td><input type="text" id="es_repo_host" name="es_repo_host" value="<?php echo get_option('es_repo_host'); ?>" /></td>
-            </tr>
+            </tr>            
             <tr>
                 <th scope="row"><label for="es_repo_version">Version</label></th>
                 <td><input type="text" id="es_repo_version" name="es_repo_version" value="<?php echo get_option('es_repo_version'); ?>" /></td>

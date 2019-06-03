@@ -27,8 +27,6 @@ $postTitle = Null;
 wp_register_script( 'edu', plugins_url('/edu.js', __FILE__), array('jquery'));
 wp_enqueue_script( 'edu' );
 
-
-
 /**
  * Enqueue the block's assets for the editor.
  *
@@ -70,7 +68,7 @@ function es_block_styles_enqueue()
     wp_enqueue_style(
         'es-block-styles-example-style', // Handle.
         plugins_url('/css/style.css', __FILE__), // style.css: This file styles the block.
-        array(), // Dependencies, defined above.
+        array(),
         filemtime(plugin_dir_path(__FILE__) . '/css/style.css') // filemtime — Gets file modification time.
     );
 }
@@ -112,12 +110,10 @@ add_action( 'rest_api_init', 'es_register_meta' );
 function es_render_callback($attributes)
 {
     $post_ID = get_the_ID();
-
     $nodeID = $attributes['nodeID'];
     $objectUrl = $attributes['objectUrl'];
     $objectVersion = $attributes['objectVersion'];
     $displayMode = 'inline';
-
     $objectTitle = $attributes['objectTitle'];
     $mimeType = $attributes['mimeType'];
     $mediaType = $attributes['mediaType'];

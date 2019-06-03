@@ -147,7 +147,8 @@ if (!empty($metadataurl)) {
             }
         }
 
-        echo 'Import sucessfull. Please reload your settings-page.';
+        echo 'Import sucessfull. Please reload your settings-page.<br>';
+        echo 'Link to register wordpess in the edusharing-repository: ' . plugins_url() . '/metadata.php';
         exit();
     } catch (Exception $e) {
         echo $e->getMessage();
