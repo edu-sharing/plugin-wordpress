@@ -2,7 +2,7 @@
 
 /**
  * Plugin Name: Edusharing
- * Description: Adds a Edusharing-Block
+ * Description: Adds a Edusharing-Block to the Gutenberg-Editor
  * Version:     1.0
  * Author:      metaVentis GmbH
  * Author URI:  http://metaventis.com
@@ -94,17 +94,20 @@ function es_register_meta() {
         'single' => true,
         'type' => 'string',
     ) );
+    register_meta( 'post', 'es_plugin_url', array(
+        'show_in_rest' => true,
+        'single' => true,
+        'type' => 'string',
+    ) );
 
     $post_ID = get_the_ID();
     $postTitle = get_the_title();
 
     update_post_meta( get_the_ID(), 'es_repo_domain', get_option('es_repo_url') );
     update_post_meta( get_the_ID(), 'es_repo_ticket', get_repo_ticket() );
+    update_post_meta( get_the_ID(), 'es_plugin_url', plugins_url() );
 }
 add_action( 'rest_api_init', 'es_register_meta' );
-
-
-
 
 //render frontend
 function es_render_callback($attributes)

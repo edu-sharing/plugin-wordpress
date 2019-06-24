@@ -44,6 +44,11 @@ registerBlockType( 'es/edusharing-block', {
             source: 'meta',
             meta: 'es_repo_ticket',
         },
+        pluginURL: {
+            type: 'string',
+            source: 'meta',
+            meta: 'es_plugin_url',
+        },
         usage: {
             type: 'boolean',
             default: false

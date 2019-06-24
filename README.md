@@ -6,7 +6,8 @@ The edu-sharing activity module adds a new Block to the Gutenberg-Editor. Using 
 Installation
 ------------
 
-After installation connect the activity module to an edu-sharing repository (settings -> Edusharing)
+After installation connect the activity module to an edu-sharing repository (settings -> Edusharing).
+Then register your wordpress-site in your edu-sharing repository (admin-tools -> applications).
 For a full documentation with screenshots of the post installation steps for the edu-sharing plugin visit the [documentation pages](http://docs.edu-sharing.com/confluence/edp/en).
 Note that PHP SOAP extension must be installed on your webserver.
 

@@ -37,7 +37,6 @@ class esEdit extends Component {
     constructor( { attributes } ) {
         super( ...arguments );
         this.toggleIsEditing = this.toggleIsEditing.bind( this );
-        this.toggleFocus = this.toggleFocus.bind( this );
         this.updateWidth = this.updateWidth.bind( this );
         this.updateHeight = this.updateHeight.bind( this );
         this.updateDimensions = this.updateDimensions.bind( this );
@@ -50,7 +49,6 @@ class esEdit extends Component {
 
     componentDidMount() {
         const { attributes, setAttributes } = this.props;
-
         //for existing objects, switch to the preview url. this allows viewing of the object without permissions.
         if(attributes.previewUrl){
             setAttributes( { previewImg: attributes.previewUrl } );
@@ -62,8 +60,7 @@ class esEdit extends Component {
 
     componentWillUnmount() {
         const { attributes, setAttributes } = this.props;
-        //deleteUsage
-        this.deleteUsage(attributes.objectUrl, attributes.resourceId);
+        this.deleteUsage(attributes.objectUrl, attributes.resourceId); //deleteUsage
     }
 
     //toggles the placeholder
@@ -71,25 +68,8 @@ class esEdit extends Component {
         this.setState( {
             isEditing: ! this.state.isEditing,
         } );
-        if ( this.state.isEditing ) {
-            //speak( __( 'You are now viewing the image in the image block.' ) );
-        } else {
-            //speak( __( 'You are now editing the image in the image block.' ) );
-        }
     }
-
-    //toggles the handles for resizing
-    toggleFocus() {
-        this.setState( {
-            isFocus: 'test',
-        } );
-        if ( this.state.isFocus ) {
-            //speak( __( 'You are now viewing the image in the image block.' ) );
-        } else {
-            //speak( __( 'You are now editing the image in the image block.' ) );
-        }
-    }
-
+    
     updateWidth( width ) {
         this.props.setAttributes( {
             objectWidth: parseInt( width, 10 )
@@ -111,7 +91,7 @@ class esEdit extends Component {
     deleteUsage(objectUrl, resourceId){
         const { attributes, setAttributes } = this.props;
         const post_id = wp.data.select("core/editor").getCurrentPostId();
-        const plugin_url = wp.data.select("core/editor").getPermalinkParts().prefix + 'wp-content/plugins/edusharing/';
+        const plugin_url = attributes.pluginURL + '/edusharing/';
         fetch(plugin_url + 'fetch.php', {
             method : 'post',
             mode:    'cors',
@@ -154,7 +134,7 @@ class esEdit extends Component {
 
                 const post_id = wp.data.select("core/editor").getCurrentPostId();
                 const post_title = wp.data.select("core/editor").getCurrentPost().title;
-                const plugin_url = wp.data.select("core/editor").getPermalinkParts().prefix + 'wp-content/plugins/edusharing/';
+                const plugin_url = attributes.pluginURL + '/edusharing/';
 
                 //if there is an old object delete it's usage
                 if(attributes.objectUrl){
@@ -201,7 +181,6 @@ class esEdit extends Component {
                 }
                 //generate hopefully unique resourceID
                 const resourceId = post_id.toString() + (Math.floor(Math.random() * 10000) + 1000);
-                //console.log('resourceID: ' + resourceId);
                 const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID + '&resourceId=' + resourceId;
                 //set the attributes from the node object
                 setAttributes({
@@ -285,7 +264,7 @@ class esEdit extends Component {
                 label="Edusharing"
             >
                 <div className='es'>
-                    <button className='close' style={{display: attributes.hideObj}} onClick={ this.toggleIsEditing }>X</button>
+                    <button className='close' style={{display: attributes.hideObj}} onClick={ this.toggleIsEditing }><Icon icon="no-alt" /></button>
                     <p className='es-placeholder'>{__('Öffne das Repository um ein Edusharing-Objekt einzufügen', 'edusharing')}</p>
                     <Button onClick={ () => {
                         this.open_repo(repoTicket, repoDomain)
@@ -390,11 +369,50 @@ class esEdit extends Component {
             </InspectorControls>
         );
 
+        const getSimpleInspectorControls = () => (
+            <InspectorControls>
+                <div className='es'>
+                    <PanelBody title={ __( 'Edusharing Einstellungen', 'edusharing') }>
+                        <TextControl
+                            label={ __( 'Titel' ) }
+                            value={ objectTitle }
+                            onChange={ function(changes){
+                                setAttributes({ objectTitle: changes });
+                            } }
+                        />
+                        <TextareaControl
+                            label="Caption"
+                            value={ attributes.objectCaption }
+                            onChange={ function(changes){
+                                setAttributes({ objectCaption: changes });
+                            } }
+                        />
+                        <TextControl
+                            type="number"
+                            className="block-library-image__dimensions__width"
+                            label={ __( 'Width' ) }
+                            value={ objectWidth || '' }
+                            min={ 1 }
+                            onChange={ this.updateWidth }
+                        />
+                        <div>
+                            <p className='es-placeholder'>{__('Edusharing-Objekt ändern:', 'edusharing')}</p>
+                            <Button onClick={() => {
+                                this.open_repo(repoTicket, repoDomain)
+                            }}>
+                                {__('Öffne Repository', 'edusharing')}
+                            </Button>
+                        </div>
+                    </PanelBody>
+                </div>
+            </InspectorControls>
+        );
+
         if(attributes.mediaType == 'link'){
             return(
                 <React.Fragment>
-                    <div className={'eduObject'}>
-                        { getInspectorControls() }
+                    <div className={'eduObject'} style={{maxWidth: objectWidth}}>
+                        { getSimpleInspectorControls() }
                         <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
                             <Icon className={'esIcon'} icon={edusharing_icon} />
                             <Icon icon="admin-links" />
@@ -410,7 +428,7 @@ class esEdit extends Component {
             return(
                 <React.Fragment>
                     <div className={'eduObject'}>
-                        { getInspectorControls() }
+                        { getSimpleInspectorControls() }
                         <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
                             <Icon className={'esIcon'} icon={edusharing_icon} />
                             <Icon icon="media-document" />
@@ -425,7 +443,7 @@ class esEdit extends Component {
         if((attributes.mimeType == 'directory' || attributes.mediaType == 'folder')){
             return (
                 <div className={'eduObject'}>
-                    { getInspectorControls() }
+                    { getSimpleInspectorControls() }
                     <div className={'folder esTitle'} onDoubleClick={ this.toggleIsEditing }>
                         <Icon className={'esIcon'} icon={edusharing_icon} />
                         {/* <Icon className={'folderIcon'} icon="arrow-right-alt2" /> */}

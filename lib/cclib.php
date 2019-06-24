@@ -9,7 +9,6 @@
  */
 require_once(dirname(__FILE__).'/../sigSoapClient.php');
 
-
 /**
  * Handle some webservice functions
  *
@@ -40,14 +39,13 @@ class mod_edusharing_web_service_factory {
     }
     }
 
-
     /**
      * Get repository ticket
      * Check existing ticket vor validity
      * Request a new one if existing ticket is invalid
      * @param string $context
      */
-    public function edusharing_authentication_get_ticket($context = self::CONTEXT_VIEWER) {
+    public function edusharing_authentication_get_ticket() {
 
         global $USER;
 
@@ -56,7 +54,8 @@ class mod_edusharing_web_service_factory {
             $USER->edusharing_userticket_context = self::CONTEXT_VIEWER;
 
         // Ticket available and has the right context.
-        if (isset($USER->edusharing_userticket) && $USER->edusharing_userticket_context >= $context) {
+        //if (isset($USER->edusharing_userticket) && $USER->edusharing_userticket_context >= $context) {
+        if (isset($USER->edusharing_userticket)) {
 
             // Ticket is younger than 10s, we must not check.
             if (isset($USER->edusharing_userticketvalidationts)
@@ -90,14 +89,14 @@ class mod_edusharing_web_service_factory {
 
         // No or invalid ticket available - request new ticket.
         $paramstrusted = array("applicationId"  => get_option('es_appID'),
-                        "ticket"  => session_id(), "ssoData"  => edusharing_get_auth_data($context));
+                        "ticket"  => session_id(), "ssoData"  => edusharing_get_auth_data());
         try {
             $client = new mod_edusharing_sig_soap_client($this->authenticationservicewsdl);
             $return = $client->authenticateByTrustedApp($paramstrusted);
             $ticket = $return->authenticateByTrustedAppReturn->ticket;
             $USER->edusharing_userticket = $ticket;
             $USER->edusharing_userticketvalidationts = time();
-            $USER->edusharing_userticket_context = $context;
+            //$USER->edusharing_userticket_context = $context;
             return $ticket;
         } catch (Exception $e) {
             echo "FAILURE: new_ticket: " . $e->getMessage();
@@ -151,9 +150,9 @@ function edusharing_get_auth_key() {
  *
  * @return array
  */
-function edusharing_get_auth_data($context) {
+function edusharing_get_auth_data() {
 
-    global $USER, $CFG, $SESSION;
+    global $SESSION;
 
     $user = wp_get_current_user();
 
@@ -216,8 +215,6 @@ function edusharing_get_auth_data($context) {
     }
     return $authparams;
 }
-
-
 
 /**
  * Get the repository-id from object-url.
@@ -286,7 +283,6 @@ function edusharing_get_signature($data) {
     openssl_free_key($pkeyid);
     return $signature;
 }
-
 
 /**
  * Given an object containing all the necessary data,
@@ -459,8 +455,8 @@ function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectV
     $url .= '&course_id='.urlencode($postID);
     $url .= '&display='.urlencode($displaymode);
     $url .= '&version=' . urlencode($objectVersion);
-    $url .= '&locale=' . urlencode(get_locale()); //repository
-    $url .= '&language=' . urlencode(get_locale()); //rendering service
+    $url .= '&locale=' . urlencode(substr(get_locale(), 0, 2)); //repository
+    $url .= '&language=' . urlencode(substr(get_locale(), 0, 2)); //rendering service
     $url .= '&u='. rawurlencode(base64_encode(edusharing_encrypt_with_repo_public(edusharing_get_auth_key())));
 
     return $url;

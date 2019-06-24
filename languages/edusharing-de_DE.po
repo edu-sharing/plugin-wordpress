@@ -21,7 +21,7 @@ msgstr "Edusharing"
 
 #. Description of the plugin
 msgid "Adds a Edusharing-Block"
-msgstr "Adds a Edusharing-Block"
+msgstr "Fügt einen Edusharing-Block dem Gutenberg-Editor hinzu"
 
 #. Author of the plugin
 msgid "metaVentis GmbH"

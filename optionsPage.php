@@ -125,14 +125,14 @@ function es_options_page()
                 <th scope="row"><label for="es_repo_public_key">Public Key</label></th>
                 <td><textarea id="es_repo_public_key" name="es_repo_public_key" rows="10" cols="30"/><?php echo get_option('es_repo_public_key'); ?></textarea></td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <th scope="row"><label for="es_repo_port">Port</label></th>
                 <td><input type="text" id="es_repo_port" name="es_repo_port" value="<?php echo get_option('es_repo_port'); ?>" /></td>
             </tr>
             <tr>
                 <th scope="row"><label for="es_repo_clientPort">Client Port</label></th>
                 <td><input type="text" id="es_repo_clientPort" name="es_repo_clientPort" value="<?php echo get_option('es_repo_clientPort'); ?>" /></td>
-            </tr>
+            </tr> -->
             <tr>
                 <th scope="row"><label for="es_repo_domain">Domain</label></th>
                 <td><input type="text" id="es_repo_domain" name="es_repo_domain" value="<?php echo get_option('es_repo_domain'); ?>" /></td>
@@ -149,14 +149,14 @@ function es_options_page()
                 <th scope="row"><label for="es_repo_usagewebservice_wsdl">es_repo_usagewebservice_wsdl</label></th>
                 <td><input type="text" id="es_repo_usagewebservice_wsdl" name="es_repo_usagewebservice_wsdl" value="<?php echo get_option('es_repo_usagewebservice_wsdl'); ?>" /></td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <th scope="row"><label for="es_repo_protocol">Protocol</label></th>
                 <td><input type="text" id="es_repo_protocol" name="es_repo_protocol" value="<?php echo get_option('es_repo_protocol'); ?>" /></td>
             </tr>            
             <tr>
                 <th scope="row"><label for="es_repo_version">Version</label></th>
                 <td><input type="text" id="es_repo_version" name="es_repo_version" value="<?php echo get_option('es_repo_version'); ?>" /></td>
-            </tr>
+            </tr> -->
         </table>
             <?php  submit_button(); ?>
         </form>
