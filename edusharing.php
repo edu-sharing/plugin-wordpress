@@ -128,6 +128,13 @@ function es_render_callback($attributes)
 
     //check for data then generate the inline-html
     if ($nodeID){
+
+        // Ensure that user exists in repository.
+        if (is_user_logged_in()) {
+            $ccauth = new mod_edusharing_web_service_factory();
+            $ccauth->edusharing_authentication_get_ticket();
+        }
+
         $url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, $resourceId);
         $url .=  '&height=' . urlencode($objectHeight) . '&width=' . urlencode($objectWidth);
 

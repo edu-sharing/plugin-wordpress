@@ -1,7 +1,8 @@
 edu-sharing activity module
 ===========================
 
-The edu-sharing activity module adds a new Block to the Gutenberg-Editor. Using the edu-sharing resource allows you to either pick content from the repository or upload it to a folder of the repository. You may pick which version of the content you would like to provide in Wordpress (always the latest vs. the version you just picked).
+The edu-sharing activity module adds a new Block to the Gutenberg-Editor. 
+Using the edu-sharing resource allows you to either pick content from the repository or upload it to a folder of the repository. 
 
 Installation
 ------------
