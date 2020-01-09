@@ -138,17 +138,21 @@ if (!empty($metadataurl)) {
 
         $entrys = $xml->getElementsByTagName('entry');
         foreach ($entrys as $entry) {
-            if(get_option('es_repo_'.$entry->getAttribute('key'))){
-                if($entry->getAttribute('key') == 'usagewebservice_wsdl'){
-                    update_option('es_repo_url', substr_replace($entry->nodeValue,'', -20));
-                    update_option('es_repo_'.$entry->getAttribute('key'), $entry->nodeValue);
-                }
-                update_option('es_repo_'.$entry->getAttribute('key'), $entry->nodeValue);
+            $optionKey = 'es_repo_' . $entry->getAttribute('key');
+            if (get_option($optionKey) === false) {
+                // Not defined as an option; we don't need this value.
+                continue;
             }
+            if ($entry->getAttribute('key') == 'usagewebservice_wsdl'){
+                update_option('es_repo_url', substr_replace($entry->nodeValue,'', -20));
+            }
+            update_option($optionKey, $entry->nodeValue);
         }
 
-        echo 'Import sucessfull. Please reload your settings-page.<br>';
-        echo 'Link to register wordpess in the edusharing-repository: ' . plugins_url() . '/metadata.php';
+        $metadataUrl = plugins_url() . '/edusharing/metadata.php';
+        echo 'Import sucessfull. Please reload your settings page.<br>';
+        echo 'Link to register wordpess in the edusharing repository: ';
+        echo "<a href=\"$metadataUrl\">$metadataUrl</a>";
         exit();
     } catch (Exception $e) {
         echo $e->getMessage();
