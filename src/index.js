@@ -105,6 +105,19 @@ registerBlockType( 'es/edusharing-block', {
             type: 'string',
             default: 'none'
         },
+        // Saved search properties.
+        // Defaults are defined in es-edit.js as values that equal defaults defined here are not
+        // sent to the render callback.
+        maxItems: {
+            type: 'integer',
+        },
+        sortBy: {
+            type: 'string',
+        },
+        // view: {
+        //     type: 'string',
+        // }
+
     },
 
     edit,

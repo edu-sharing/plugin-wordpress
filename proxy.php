@@ -54,7 +54,7 @@ class filter_edusharing_edurender {
      *
      * @param string $html
      */
-    public function filter_edusharing_display($html, $url) {
+    public function filter_edusharing_display($html, $url, $ticket) {
         $parts = parse_url($url);
         parse_str($parts['query'], $param);
         $resid = $param['resource_id'];
@@ -71,6 +71,7 @@ class filter_edusharing_edurender {
 
         $html = str_replace("{{{LMS_INLINE_HELPER_SCRIPT}}}",plugin_dir_url( __FILE__ ) . "inlineHelper.php?resId=" . $resid .
             "&objectURL=" . $objectUrl . "&display=" . $displaymode . "&postID=" . $postID . "&objectVersion=" . $objectVersion . "&", $html);
+        $html = str_replace("{{{TICKET}}}", $ticket, $html);
 
         $html = preg_replace("/<es:title[^>]*>.*<\/es:title>/Uims", get_param('title'), $html);
         $caption = get_param('caption');
@@ -96,6 +97,7 @@ function get_param($parname) {
 $url = get_param('URL');
 $videoFormat = get_param('videoFormat');
 $title = get_param('title');
+$ticket = get_param('ticket');
 
 $parts = parse_url($url);
 parse_str($parts['query'], $query);
@@ -109,4 +111,4 @@ $url .= '&videoFormat=' . $videoFormat;
 
 $e = new filter_edusharing_edurender();
 $html = $e->filter_edusharing_get_render_html($url);
-$e->filter_edusharing_display($html, $url);
+$e->filter_edusharing_display($html, $url, $ticket);

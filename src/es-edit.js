@@ -11,6 +11,7 @@ import {
     Placeholder,
     ButtonGroup,
     ResizableBox,
+    SelectControl,
 } from '@wordpress/components';
 
 import {
@@ -408,6 +409,75 @@ class esEdit extends Component {
             </InspectorControls>
         );
 
+        const getSavedSearchInspectorControls = () => (
+            <InspectorControls>
+                <div className='es'>
+                    <PanelBody title={__('Edusharing Einstellungen', 'edusharing')}>
+                        <TextControl
+                            label={__('Titel')}
+                            value={objectTitle}
+                            onChange={function (changes) {
+                                setAttributes({ objectTitle: changes });
+                            }}
+                        />
+                        <TextareaControl
+                            label="Caption"
+                            value={attributes.objectCaption}
+                            onChange={function (changes) {
+                                setAttributes({ objectCaption: changes });
+                            }}
+                        />
+                        <TextControl
+                            type="number"
+                            label={__('Maximum number of results')}
+                            value={attributes.maxItems}
+                            min={1}
+                            onChange={(newValue) => {
+                                setAttributes({ maxItems: parseInt(newValue, 10) });
+                            }}
+                        />
+                        <SelectControl
+                            label={__('Sort by')}
+                            value={attributes.sortBy}
+                            options={
+                                [
+                                    { value: 'cm:modified', label: __('Most recently changed') },
+                                    { value: 'score', label: __('Relevance') },
+                                ]
+                            }
+                            onChange={(newValue) => {
+                                setAttributes({ sortBy: newValue });
+                            }}
+                        />
+                        {/*
+                        // Currently only one view is implemented. Uncomment this, when different
+                        // views become available.
+                        <SelectControl
+                            label={__('View')}
+                            value={attributes.view}
+                            options={
+                                [
+                                    { value: 'tiles', label: __('Tiles') },
+                                    { value: 'list', label: __('List') },
+                                ]
+                            }
+                            onChange={(newValue) => {
+                                setAttributes({ view: newValue });
+                            }}
+                        /> */}
+                        <div>
+                            <p className='es-placeholder'>{__('Edusharing-Objekt ändern:', 'edusharing')}</p>
+                            <Button onClick={() => {
+                                this.open_repo(repoTicket, repoDomain)
+                            }}>
+                                {__('Öffne Repository', 'edusharing')}
+                            </Button>
+                        </div>
+                    </PanelBody>
+                </div>
+            </InspectorControls>
+        );
+
         if(attributes.mediaType == 'link'){
             return(
                 <React.Fragment>
@@ -452,6 +522,35 @@ class esEdit extends Component {
                     </div>
                     <p>{attributes.objectCaption}</p>
 
+                </div>
+            );
+        }
+
+        if (attributes.mediaType === 'saved_search') {
+            // Set default values. This is done here since default values defined in
+            // `registerBlockType` will not be sent to the render callback and defaults defined in
+            // `register_block_type` will not be available here.
+            const defaults = {
+                maxItems: 5,
+                sortBy: 'score',
+                // view: 'tiles',
+            };
+            const newValues = {};
+            for (const key in defaults) {
+                if (attributes[key] === undefined) {
+                    newValues[key] = defaults[key];
+                }
+            }
+            setAttributes(newValues);
+            return (
+                <div className={'eduObject'}>
+                    {getSavedSearchInspectorControls()}
+                    <div className={'esTitle'} onDoubleClick={this.toggleIsEditing}>
+                        <Icon className={'esIcon'} icon={edusharing_icon} />
+                        <Icon icon="search" />
+                        <p>{attributes.objectTitle}</p>
+                    </div>
+                    <p>{attributes.objectCaption}</p>
                 </div>
             );
         }

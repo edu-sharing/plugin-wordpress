@@ -132,11 +132,17 @@ function es_render_callback($attributes)
         // Ensure that user exists in repository.
         if (is_user_logged_in()) {
             $ccauth = new mod_edusharing_web_service_factory();
-            $ccauth->edusharing_authentication_get_ticket();
+            $ticket = $ccauth->edusharing_authentication_get_ticket();
         }
 
         $url = edusharing_get_redirect_url($objectUrl, $displayMode, $post_ID, $objectVersion, $resourceId);
         $url .=  '&height=' . urlencode($objectHeight) . '&width=' . urlencode($objectWidth);
+        if ($mediaType == 'saved_search') {
+            $url .= '&maxItems=' . $attributes['maxItems']
+                . '&sortBy=' . $attributes['sortBy']
+                . '&sortAscending=false'
+                . '&view=list'; // . $attributes['view'];
+        }
 
         $inline = '<div class="eduContainer" data-type="esObject" data-url="' . get_site_url() .
             '/wp-content/plugins/edusharing/proxy.php?URL=' . urlencode($url) . '&resId=' .
@@ -145,6 +151,7 @@ function es_render_callback($attributes)
             '&mediatype=' . urlencode($mediaType) .
             '&caption=' . urlencode($objectCaption) .
             '&width=' . urlencode($objectWidth) .
+            '&ticket=' . $ticket .
             '"><div class="edusharing_spinner_inner"><div class="edusharing_spinner1"></div></div>' .
             '<div class="edusharing_spinner_inner"><div class="edusharing_spinner2"></div></div>'.
             '<div class="edusharing_spinner_inner"><div class="edusharing_spinner3"></div></div>'.
