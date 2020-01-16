@@ -34,7 +34,13 @@ if ($resid) {
     trigger_error('InlineHelper: error_missing_instance_id');
 }
 
-$redirecturl = edusharing_get_redirect_url(get_param('objectURL'), 'window', get_param('postID'), get_param('objectVersion'));
+$redirecturl = edusharing_get_redirect_url(
+    get_param('objectURL'),
+    'window',
+    get_param('postID'),
+    get_param('objectVersion'),
+    get_param('resId')
+);
 
 $ts = $timestamp = round(microtime(true) * 1000);
 $redirecturl .= '&ts=' . $ts;
@@ -50,4 +56,3 @@ if($childobject_id)
 
 wp_redirect( $redirecturl );
 exit;
-

@@ -60,7 +60,7 @@ class filter_edusharing_edurender {
         $resid = $param['resource_id'];
         $objectUrl = $param['objectUrl'];
         $displaymode = $param['display'];
-        $postID = $param['resource_id'];
+        $postID = $param['course_id'];
         $objectVersion = $param['version'];
 
         $html = str_replace(array("\n", "\r", "\n"), '', $html);
