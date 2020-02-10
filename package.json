@@ -4,7 +4,7 @@
   "description": "Edu-Sharing wordpress plugin",
   "main": "block.js",
   "dependencies": {
-    "@wordpress/components": "^7.3.2",
+    "@wordpress/components": "^7.4.0",
     "@wordpress/scripts": "3.1.0"
   },
   "devDependencies": {},

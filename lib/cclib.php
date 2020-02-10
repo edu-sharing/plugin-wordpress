@@ -461,3 +461,113 @@ function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectV
 
     return $url;
 }
+
+function edusharing_import_metadata($metadataurl){
+    try {
+
+        $xml = new DOMDocument();
+
+        libxml_use_internal_errors(true);
+
+        $curlhandle = curl_init($metadataurl);
+        curl_setopt($curlhandle, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($curlhandle, CURLOPT_HEADER, 0);
+        curl_setopt($curlhandle, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($curlhandle, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
+        curl_setopt($curlhandle, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($curlhandle, CURLOPT_SSL_VERIFYHOST, false);
+        $properties = curl_exec($curlhandle);
+        if ($xml->loadXML($properties) == false) {
+            echo ('<p style="background: #FF8170">could not load ' . $metadataurl .
+                    ' please check url') . "<br></p>";
+            echo get_form($metadataurl);
+            exit();
+        }
+        curl_close($curlhandle);
+        $xml->preserveWhiteSpace = false;
+        $xml->formatOutput = true;
+        $entrys = $xml->getElementsByTagName('entry');
+        foreach ($entrys as $entry) {
+            $optionKey = 'es_repo_' . $entry->getAttribute('key');
+            if (get_option($optionKey) === false) {
+                // Not defined as an option; we don't need this value.
+                continue;
+            }
+            if ($entry->getAttribute('key') == 'usagewebservice_wsdl'){
+                update_option('es_repo_url', substr_replace($entry->nodeValue,'', -20));
+            }
+            update_option($optionKey, $entry->nodeValue);
+        }
+        echo '<h3 class="edu_success">Import successful. Please reload your settings page.</h3>';
+        return true;
+    } catch (Exception $e) {
+        echo '<h3 class="edu_error">'.$e->getMessage().'</h3>';
+        return false;
+    }
+}
+
+
+function callMetadataRepoAPI($method, $url, $ticket=NULL, $auth=NULL, $data=NULL){
+    $curl = curl_init();
+    switch ($method){
+        case "POST":
+            curl_setopt($curl, CURLOPT_POST, 1);
+            if ($data){
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            }
+            break;
+        case "PUT":
+            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
+            if ($data){
+                $fields = array(
+                    'file[0]' => new CURLFile($data, 'text/xml', 'metadata.xml')
+                );
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            }
+            break;
+        default:
+            if ($data){
+                $url = sprintf("%s?%s", $url, http_build_query($data));
+            }
+    }
+    // OPTIONS:
+    curl_setopt($curl, CURLOPT_URL, $url);
+    curl_setopt($curl, CURLOPT_USERPWD, $auth);
+    if (empty($ticket)){
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+            'Accept: application/json',
+            'Content-Type: application/json',
+        ));
+    }else{
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
+            'Authorization: EDU-TICKET '.$ticket,
+            'Accept: application/json',
+            'Content-Type: application/json',
+        ));
+    }
+
+    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+
+    // EXECUTE:
+    try{
+        $result = curl_exec($curl);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+        //error_log('$httpcode: '.$httpcode);
+        if($result === false) {
+            trigger_error(curl_error($curl), E_USER_WARNING);
+        }
+        if ($httpcode === 401){
+            $result = json_encode(array('message' => 'Error 401: Unauthorized. Please check your credentials.'));
+        }
+    } catch (Exception $e) {
+        error_log('error: '.$e->getMessage());
+        trigger_error($e->getMessage(), E_USER_WARNING);
+    }
+    //error_log('api called: '.$result);
+    if(!$result){
+        $result = "Connection Failure";
+    }
+    curl_close($curl);
+    return $result;
+}

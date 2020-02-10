@@ -34,6 +34,7 @@
     border-radius: 3px;
     white-space: nowrap;
     box-sizing: border-box;
+    transition: ease-in-out 0.3s;
 }
 
 .es-connect-repo a:hover {
@@ -54,10 +55,12 @@
 }
 
 .es-forms form{
+    background: #fff;
     padding: 10px;
     border: 1px #bbbbbb solid;
     border-radius: 4px;
     margin-right: 15px;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, .15);
 }
 
 .es-forms .submit{

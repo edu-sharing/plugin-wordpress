@@ -40,7 +40,7 @@
             var wrapper = esObject.parent();
         //alert(url);
         jquery.get(url, function (data) {
-            wrapper.html('').append(data).css({ width: width, height: 'auto'});
+            wrapper.html('').append(data).css({display: 'none', height: 'auto', width: 'auto'}).fadeIn('slow', 'linear');
             if (data.toLowerCase().indexOf('data-view="lock"') >= 0)
                 setTimeout(function () {
                     renderEsObject(esObject, wrapper);
@@ -66,19 +66,19 @@
             if (jquery(e.target).closest(".edusharing_metadata").length) {
                 //clicked inside ".edusharing_metadata" - do nothing
             } else if (jquery(e.target).closest(".edusharing_metadata_toggle_button").length) {
-                jquery(".edusharing_metadata").hide();
+                jquery(".edusharing_metadata").fadeOut('fast');
                 toggle_button = jquery(e.target);
                 metadata = toggle_button.parent().find(".edusharing_metadata");
                 if (metadata.hasClass('open')) {
                     metadata.toggleClass('open');
-                    metadata.hide();
+                    metadata.fadeOut('fast');
                 } else {
                     jquery(".edusharing_metadata").removeClass('open');
                     metadata.toggleClass('open');
-                    metadata.show();
+                    metadata.fadeIn('fast');
                 }
             } else {
-                jquery(".edusharing_metadata").hide();
+                jquery(".edusharing_metadata").fadeOut('fast');
                 jquery(".edusharing_metadata").removeClass('open');
             }
         })
