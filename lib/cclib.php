@@ -24,9 +24,6 @@ class mod_edusharing_web_service_factory {
      */
     private $authenticationservicewsdl = '';
 
-    const CONTEXT_VIEWER = 0;
-    const CONTEXT_EDITOR = 1;
-
     /**
      * Get repository properties and set auth service url
      *
@@ -47,19 +44,18 @@ class mod_edusharing_web_service_factory {
      */
     public function edusharing_authentication_get_ticket() {
 
+        //$USER = wp_get_current_user();
         global $USER;
 
-        if(!isset($USER->edusharing_userticket_context))
+        if(!isset($USER->edusharing_userticket)){
             $USER = new stdClass();
-            $USER->edusharing_userticket_context = self::CONTEXT_VIEWER;
+        }
 
-        // Ticket available and has the right context.
-        //if (isset($USER->edusharing_userticket) && $USER->edusharing_userticket_context >= $context) {
+        // Ticket available
         if (isset($USER->edusharing_userticket)) {
 
             // Ticket is younger than 10s, we must not check.
-            if (isset($USER->edusharing_userticketvalidationts)
-                    && time() - $USER->edusharing_userticketvalidationts < 10) {
+            if (isset($USER->edusharing_userticketvalidationts) && time() - $USER->edusharing_userticketvalidationts < 10) {
                 return $USER->edusharing_userticket;
             }
             try {
@@ -89,14 +85,13 @@ class mod_edusharing_web_service_factory {
 
         // No or invalid ticket available - request new ticket.
         $paramstrusted = array("applicationId"  => get_option('es_appID'),
-                        "ticket"  => session_id(), "ssoData"  => edusharing_get_auth_data());
+                                "ticket"  => session_id(), "ssoData"  => edusharing_get_auth_data());
         try {
             $client = new mod_edusharing_sig_soap_client($this->authenticationservicewsdl);
             $return = $client->authenticateByTrustedApp($paramstrusted);
             $ticket = $return->authenticateByTrustedAppReturn->ticket;
             $USER->edusharing_userticket = $ticket;
             $USER->edusharing_userticketvalidationts = time();
-            //$USER->edusharing_userticket_context = $context;
             return $ticket;
         } catch (Exception $e) {
             echo "FAILURE: new_ticket: " . $e->getMessage();
@@ -111,7 +106,7 @@ class mod_edusharing_web_service_factory {
  */
 function edusharing_get_auth_key() {
 
-    global $USER, $SESSION;
+    global $SESSION;
 
     $user = wp_get_current_user();
 
@@ -121,26 +116,21 @@ function edusharing_get_auth_key() {
         return $SESSION -> edusharing_sso[$eduauthparamnameuserid];
     }
 
-    $guestoption = get_option('es_guest_option');
-    if (!empty($guestoption)) {
-        $guestid = get_option('es_guest_id');
-        if (empty($guestid)) {
-            $guestid = 'esguest';
-        }
-
-        return $guestid;
+    if (!empty(get_option('es_guest_option')) || empty($user->ID)) {
+        return get_option('es_guest_id', 'esguest');
     }
 
     $eduauthkey = get_option('es_auth_key');
-
-    if($eduauthkey == 'id')
+    if ($eduauthkey == 'id') {
         return $user->user_login;
-    if($eduauthkey == 'idnumber')
+    }
+    if ($eduauthkey == 'idnumber') {
         return $user->ID;
-    if($eduauthkey == 'email')
+    }
+    if ($eduauthkey == 'email') {
         return $user->user_email;
-    if(isset($USER->profile[$eduauthkey]))
-        return $USER->profile[$eduauthkey];
+    }
+
     return $user->user_login;
 }
 
@@ -185,8 +175,13 @@ function edusharing_get_auth_data() {
         }
 
         $eduauthaffiliation = get_option('es_auth_affiliation');
-
         $eduauthaffiliationname = get_option('es_auth_affiliation_name');
+
+        if(empty($user->user_lastname)){
+            $user_lastname = $user->user_login;
+        }else{
+            $user_lastname = $user->user_lastname;
+        }
 
         $guestoption = get_option('es_guest_option');
         if ($guestoption == 1 || $user->ID == 0) {
@@ -196,8 +191,8 @@ function edusharing_get_auth_data() {
             }
             $authparams = array(
                 array('key'  => $eduauthparamnameuserid, 'value'  => $guestid),
-                array('key'  => $eduauthparamnamelastname, 'value'  => ''),
-                array('key'  => $eduauthparamnamefirstname, 'value'  => ''),
+                array('key'  => $eduauthparamnamelastname, 'value'  => 'Guest'),
+                array('key'  => $eduauthparamnamefirstname, 'value'  => 'ES'),
                 array('key'  => $eduauthparamnameemail, 'value'  => ''),
                 array('key'  => 'affiliation', 'value'  => $eduauthaffiliation),
                 array('key'  => 'affiliationname', 'value' => $eduauthaffiliationname)
@@ -205,7 +200,7 @@ function edusharing_get_auth_data() {
         } else {
             $authparams = array(
                 array('key'  => $eduauthparamnameuserid, 'value'  => edusharing_get_auth_key()),
-                array('key'  => $eduauthparamnamelastname, 'value'  => $user->user_lastname),
+                array('key'  => $eduauthparamnamelastname, 'value'  => $user_lastname),
                 array('key'  => $eduauthparamnamefirstname, 'value'  => $user->user_firstname),
                 array('key'  => $eduauthparamnameemail, 'value'  => $user->user_email),
                 array('key'  => 'affiliation', 'value'  => $eduauthaffiliation),
@@ -553,7 +548,6 @@ function callMetadataRepoAPI($method, $url, $ticket=NULL, $auth=NULL, $data=NULL
     try{
         $result = curl_exec($curl);
         $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        //error_log('$httpcode: '.$httpcode);
         if($result === false) {
             trigger_error(curl_error($curl), E_USER_WARNING);
         }
@@ -564,7 +558,6 @@ function callMetadataRepoAPI($method, $url, $ticket=NULL, $auth=NULL, $data=NULL
         error_log('error: '.$e->getMessage());
         trigger_error($e->getMessage(), E_USER_WARNING);
     }
-    //error_log('api called: '.$result);
     if(!$result){
         $result = "Connection Failure";
     }

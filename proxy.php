@@ -53,6 +53,8 @@ class filter_edusharing_edurender {
      * Prepare rendered object for display
      *
      * @param string $html
+     * @param $url
+     * @param $ticket
      */
     public function filter_edusharing_display($html, $url, $ticket) {
         $parts = parse_url($url);
@@ -68,7 +70,6 @@ class filter_edusharing_edurender {
         /*
          * replaces {{{LMS_INLINE_HELPER_SCRIPT}}}
          */
-
         $html = str_replace("{{{LMS_INLINE_HELPER_SCRIPT}}}",plugin_dir_url( __FILE__ ) . "inlineHelper.php?resId=" . $resid .
             "&objectURL=" . $objectUrl . "&display=" . $displaymode . "&postID=" . $postID . "&objectVersion=" . $objectVersion . "&", $html);
         $html = str_replace("{{{TICKET}}}", $ticket, $html);
@@ -98,13 +99,11 @@ $url = get_param('URL');
 $videoFormat = get_param('videoFormat');
 $title = get_param('title');
 $ticket = get_param('ticket');
-
 $parts = parse_url($url);
 parse_str($parts['query'], $query);
 
 $ts = $timestamp = round(microtime(true) * 1000);
 $url .= '&ts=' . $ts;
-
 $url .= '&sig=' . urlencode(edusharing_get_signature(get_option('es_appID') . $ts . $query['obj_id']));
 $url .= '&signed=' . urlencode(get_option('es_appID') . $ts . $query['obj_id']);
 $url .= '&videoFormat=' . $videoFormat;
