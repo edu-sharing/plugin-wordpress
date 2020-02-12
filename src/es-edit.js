@@ -167,7 +167,7 @@ class esEdit extends Component {
                 let height;
                 let width;
                 const url = node.objectUrl;
-                const version = node.contentVersion;
+                const version = node.properties['cclom:version'];
                 const repoID = node.parent.repo;
                 if(!node.properties["ccm:height"]){
                     height = '';
@@ -189,7 +189,7 @@ class esEdit extends Component {
                     previewUrl: previewUrl,
                     nodeID: node.ref.id,
                     objectUrl: url,
-                    objectVersion: node.contentVersion,
+                    objectVersion: node.properties['cclom:version'],
                     objectHeight: parseInt( height, 10 ),
                     objectWidth: parseInt( width, 10 ),
                     orgHeight: parseInt( height, 10 ),

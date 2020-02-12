@@ -35,8 +35,13 @@ $objectUrl = get_param('objectUrl');
 $objectVersion = get_param('objectVersion');
 $repoID = get_param('repoID');
 $resourceId = get_param('resourceId');
-$previewservice = get_option('es_repo_url') . '/' . 'preview';
+if(substr(get_option('es_repo_url') , -1) == '/'){
+    $previewservice = get_option('es_repo_url') . 'preview';
+}else{
+    $previewservice = get_option('es_repo_url') . '/' . 'preview';
+}
 $time = round(microtime(true) * 1000);
+$ticket = get_param('ticket');
 
 $url = $previewservice;
 $url .= '?appId=' . get_option('es_appID');
@@ -51,6 +56,8 @@ $sig = urlencode(edusharing_get_signature($sigdata));
 $url .= '&sig=' . $sig;
 $url .= '&signed=' . $sigdata;
 $url .= '&ts=' . $time;
+
+error_log($url);
 
 $curlhandle = curl_init($url);
 curl_setopt($curlhandle, CURLOPT_SSL_VERIFYPEER, false);
