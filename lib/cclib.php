@@ -61,7 +61,8 @@ class mod_edusharing_web_service_factory {
             try {
                 $eduservice = new mod_edusharing_sig_soap_client($this->authenticationservicewsdl, array());
             } catch (Exception $e) {
-                echo "FAILURE: soap_client " . $e->getMessage();
+                error_log( "wp_edusharing: FAILURE: soap_client " . $e->getMessage());
+                trigger_error($e->getMessage());
             }
 
             try {
@@ -78,7 +79,8 @@ class mod_edusharing_web_service_factory {
                     return $USER->edusharing_userticket;
                 }
             } catch (Exception $e) {
-                echo "FAILURE: ticket_available " . $e->getMessage();
+                error_log( "wp_edusharing: FAILURE: ticket_available " . $e->getMessage());
+                trigger_error($e->getMessage());
             }
 
         }
@@ -94,7 +96,8 @@ class mod_edusharing_web_service_factory {
             $USER->edusharing_userticketvalidationts = time();
             return $ticket;
         } catch (Exception $e) {
-            echo "FAILURE: new_ticket: " . $e->getMessage();
+            error_log( "FAILURE: new_ticket: " . $e->getMessage());
+            trigger_error($e->getMessage());
         }
         return false;
     }
@@ -301,7 +304,7 @@ function edusharing_add_instance($objectVersion, $objectUrl, $post_ID, $postTitl
 
     if(!$resourceId){
         $resourceId = $post_ID;
-        echo '<script>console.log("add_instance no resourceId")</script>';
+        error_log("wp_edusharing: add_instance no resourceId");
     }
 
     $user = wp_get_current_user();
@@ -369,7 +372,7 @@ function edusharing_delete_instance($objectUrl, $post_ID, $resourceId) {
     try {
         if(!$resourceId){
             $resourceId = $post_ID;
-            echo '<script>console.log("delete_instance no resourceId: '.$resourceId.'")</script>';
+            error_log( "wp-edusharing: delete_instance no resourceId: ".$resourceId);
         }
         $connectionurl = get_option('es_repo_usagewebservice_wsdl');
         if ( ! $connectionurl ) {
@@ -436,7 +439,7 @@ function edusharing_get_redirect_url($objectUrl, $displaymode, $postID, $objectV
 
     if(!$resourceId){
         $resourceId = $postID;
-        echo '<script>console.log("get_redirect_url: no resourceId")</script>';
+        error_log("wp-edusharing get_redirect_url: no resourceId");
     }
 
     $url = get_option('es_repo_url') . 'renderingproxy';
@@ -555,7 +558,7 @@ function callMetadataRepoAPI($method, $url, $ticket=NULL, $auth=NULL, $data=NULL
             $result = json_encode(array('message' => 'Error 401: Unauthorized. Please check your credentials.'));
         }
     } catch (Exception $e) {
-        error_log('error: '.$e->getMessage());
+        error_log('wp_edusharing: error: '.$e->getMessage());
         trigger_error($e->getMessage(), E_USER_WARNING);
     }
     if(!$result){

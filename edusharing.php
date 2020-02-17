@@ -103,9 +103,9 @@ function es_register_meta() {
     $post_ID = get_the_ID();
     $postTitle = get_the_title();
 
-    update_post_meta( get_the_ID(), 'es_repo_domain', get_option('es_repo_url') );
-    update_post_meta( get_the_ID(), 'es_repo_ticket', get_repo_ticket() );
-    update_post_meta( get_the_ID(), 'es_plugin_url', plugins_url() );
+    update_post_meta( $post_ID, 'es_repo_domain', get_option('es_repo_url') );
+    update_post_meta( $post_ID, 'es_repo_ticket', get_repo_ticket() );
+    update_post_meta( $post_ID, 'es_plugin_url', plugins_url() );
 }
 add_action( 'rest_api_init', 'es_register_meta' );
 

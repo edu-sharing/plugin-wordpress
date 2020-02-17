@@ -27,7 +27,7 @@ import { __, sprintf } from '@wordpress/i18n';
 
 const el = wp.element.createElement;
 
-const edusharing_icon = el('svg', { width: 20, height: 20 },
+const edusharing_icon = el('svg', { width: 28, height: 20 },
     el('polygon', { fill:'#3162A7', points: "2.748,19.771 0.027,15.06 2.748,10.348 8.188,10.348 10.908,15.06 8.188,19.771" } ),
     el('polygon', { fill:'#7F91C3', points: "11.776,14.54 9.056,9.829 11.776,5.117 17.218,5.117 19.938,9.829 17.218,14.54" } ),
     el('polygon', { fill:'#C1C6E3', points: "2.721,9.423 0,4.712 2.721,0 8.161,0 10.882,4.712 8.161,9.423" } )
@@ -167,7 +167,7 @@ class esEdit extends Component {
                 let height;
                 let width;
                 const url = node.objectUrl;
-                const version = node.properties['cclom:version'];
+                const version = node.properties['cclom:version'][0];
                 const repoID = node.parent.repo;
                 if(!node.properties["ccm:height"]){
                     height = '';
@@ -189,7 +189,7 @@ class esEdit extends Component {
                     previewUrl: previewUrl,
                     nodeID: node.ref.id,
                     objectUrl: url,
-                    objectVersion: node.properties['cclom:version'],
+                    objectVersion: version,
                     objectHeight: parseInt( height, 10 ),
                     objectWidth: parseInt( width, 10 ),
                     orgHeight: parseInt( height, 10 ),
@@ -477,6 +477,20 @@ class esEdit extends Component {
                 </div>
             </InspectorControls>
         );
+
+        if(!repoTicket){
+            return(
+                <React.Fragment>
+                    <div className={'eduObject'} style={{maxWidth: objectWidth}}>
+                        { getSimpleInspectorControls() }
+                        <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
+                            <Icon className={'esIcon'} icon={edusharing_icon} />
+                            <p>Error: No connection to edu-sharing repository.</p>
+                        </div>
+                    </div>
+                </React.Fragment>
+            )
+        }
 
         if(attributes.mediaType == 'link'){
             return(

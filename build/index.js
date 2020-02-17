@@ -367,7 +367,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var el = wp.element.createElement;
 var edusharing_icon = el('svg', {
-  width: 20,
+  width: 28,
   height: 20
 }, el('polygon', {
   fill: '#3162A7',
@@ -549,7 +549,7 @@ function (_Component) {
           var height;
           var width;
           var _url = node.objectUrl;
-          var version = node.properties['cclom:version'];
+          var version = node.properties['cclom:version'][0];
           var repoID = node.parent.repo;
 
           if (!node.properties["ccm:height"]) {
@@ -575,7 +575,7 @@ function (_Component) {
             previewUrl: previewUrl,
             nodeID: node.ref.id,
             objectUrl: _url,
-            objectVersion: node.properties['cclom:version'],
+            objectVersion: version,
             objectHeight: parseInt(height, 10),
             objectWidth: parseInt(width, 10),
             orgHeight: parseInt(height, 10),
@@ -830,6 +830,21 @@ function (_Component) {
           }
         }, Object(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_12__["__"])('Öffne Repository', 'edusharing'))))));
       };
+
+      if (!repoTicket) {
+        return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(React.Fragment, null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+          className: 'eduObject',
+          style: {
+            maxWidth: objectWidth
+          }
+        }, getSimpleInspectorControls(), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
+          className: 'esTitle',
+          onDoubleClick: this.toggleIsEditing
+        }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_7__["Icon"], {
+          className: 'esIcon',
+          icon: edusharing_icon
+        }), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("p", null, "Error: No connection to edu-sharing repository."))));
+      }
 
       if (attributes.mediaType == 'link') {
         return Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(React.Fragment, null, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("div", {
