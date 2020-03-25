@@ -54,19 +54,19 @@ function callRepo($user, $pwd){
     $auth = $user.':'.$pwd;
     $answer = json_decode(callMetadataRepoAPI('PUT', $apiUrl, null, $auth), true);
     if ( isset($answer['appid']) ){
-        echo('<h3 class="edu_success">Successfully registered the edusharing-moodle-plugin at: '.$repo_url.'</h3>');
+        echo('<h3 class="edu_success">Successfully registered the edusharing-WordPress-plugin at: '.$repo_url.'</h3>');
     }else{
-        echo('<h3 class="edu_error">ERROR: Could not register the edusharing-moodle-plugin at: '.$repo_url.'</h3>');
+        echo('<h3 class="edu_error">ERROR: Could not register the edusharing-WordPress-plugin at: '.$repo_url.'</h3>');
         if ( isset($answer['message']) ){
             echo '<p class="edu_error">'.$answer['message'].'</p>';
         }
-        echo '<h3>Register the Moodle-Plugin in the Repository manually:</h3>';
+        echo '<h3>Register the WordPress-Plugin in the Repository manually:</h3>';
         echo '
-            <p class="edu_metadata"> To register the Moodle-PlugIn manually got to the 
+            <p class="edu_metadata"> To register the WordPress-PlugIn manually got to the 
             <a href="'.$repo_url.'" target="_blank">Repository</a> and open the "APPLICATIONS"-tab of the "Admin-Tools" interface.<br>
             Only the system administrator may use this tool.<br>
-            Enter the URL of the Moodle you want to connect. The URL should look like this:  
-            „[Moodle-install-directory]/mod/edusharing/metadata.php".<br>
+            Enter the URL of the WordPress you want to connect. The URL should look like this:  
+            „[WordPress-install-directory]/wp-content/plugins/edusharing/metadata.php".<br>
             Click on "CONNECT" to register the LMS. You will be notified with a feedback message and your LMS instance 
             will appear as an entry in the list of registered applications.<br>
             If the automatic registration failed due to a connection issue caused by a proxy-server, you also need to 
@@ -81,8 +81,8 @@ function getRepoForm(){
     if (!empty($repo_url)){
         return '
             <form class="repo-reg" action="import_metadata.php" method="post">
-                <h3>Try to register the edu-sharing moodle-plugin with a repository:</h3>
-                <p>If your moodle is behind a proxy-server, this might not work and you have to register the plugin manually.</p>
+                <h3>Try to register the edu-sharing WordPress-plugin with a repository:</h3>
+                <p>If your WordPress is behind a proxy-server, this might not work and you have to register the plugin manually.</p>
                 <div class="edu_metadata">
                     <div class="repo_input">
                         <p>Repo-URL:</p><input type="text" value="'.$repo_url.'" name=repoUrl />
