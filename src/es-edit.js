@@ -164,10 +164,14 @@ class esEdit extends Component {
                         })
                 }
 
-                let height;
-                let width;
+                let height, width, version;
                 const url = node.objectUrl;
-                const version = node.properties['cclom:version'][0];
+                //const version = node.properties['cclom:version'][0];
+                if(!node.properties["ccm:version"]){
+                    version = node.properties['cclom:version'][0];
+                }else{
+                    version = '0';
+                }
                 const repoID = node.parent.repo;
                 if(!node.properties["ccm:height"]){
                     height = '';
@@ -485,7 +489,7 @@ class esEdit extends Component {
                         { getSimpleInspectorControls() }
                         <div className={'esTitle'} onDoubleClick={ this.toggleIsEditing }>
                             <Icon className={'esIcon'} icon={edusharing_icon} />
-                            <p>Error: No connection to edu-sharing repository.</p>
+                            <p>{__('Error: No connection to edu-sharing repository.', 'edusharing')}</p>
                         </div>
                     </div>
                 </React.Fragment>

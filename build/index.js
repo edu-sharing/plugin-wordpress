@@ -546,10 +546,15 @@ function (_Component) {
             });
           }
 
-          var height;
-          var width;
-          var _url = node.objectUrl;
-          var version = node.properties['cclom:version'][0];
+          var height, width, version;
+          var _url = node.objectUrl; //const version = node.properties['cclom:version'][0];
+
+          if (!node.properties["ccm:version"]) {
+            version = node.properties['cclom:version'][0];
+          } else {
+            version = '0';
+          }
+
           var repoID = node.parent.repo;
 
           if (!node.properties["ccm:height"]) {
@@ -843,7 +848,7 @@ function (_Component) {
         }, Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])(_wordpress_components__WEBPACK_IMPORTED_MODULE_7__["Icon"], {
           className: 'esIcon',
           icon: edusharing_icon
-        }), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("p", null, "Error: No connection to edu-sharing repository."))));
+        }), Object(_wordpress_element__WEBPACK_IMPORTED_MODULE_6__["createElement"])("p", null, Object(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_12__["__"])('Error: No connection to edu-sharing repository.', 'edusharing')))));
       }
 
       if (attributes.mediaType == 'link') {
