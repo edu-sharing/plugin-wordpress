@@ -7,8 +7,10 @@ Using the edu-sharing resource allows you to either pick content from the reposi
 Installation
 ------------
 
+Copy the plugin into `wp-plugins/edusharing`.
 After installation connect the activity module to an edu-sharing repository (settings -> Edusharing).
 Then register your wordpress-site in your edu-sharing repository (admin-tools -> applications).
+If this fails, you can manually register it in the repository by registering the url `https://example.com/wp-content/plugins/edusharing/metadata.php`
 For a full documentation with screenshots of the post installation steps for the edu-sharing plugin visit the [documentation pages](http://docs.edu-sharing.com/confluence/edp/en).
 Note that PHP SOAP extension must be installed on your webserver.
 
