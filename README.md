@@ -30,7 +30,7 @@ More information can be found on the [homepage](http://www.edu-sharing.com).
 Where can I get the latest release?
 -----------------------------------
 
-You find our latest releases on our [github repository](https://github.com/edu-sharing).
+You find our latest releases on our [github repository](https://github.com/edu-sharing/plugin-wordpress).
 
 Contributing
 ------------
