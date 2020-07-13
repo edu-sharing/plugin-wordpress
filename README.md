@@ -7,7 +7,7 @@ Using the edu-sharing resource allows you to either pick content from the reposi
 Installation
 ------------
 
-Copy the plugin into `wp-plugins/edusharing`.
+Copy the plugin into `wp-content/plugins/edusharing`.
 
 After installation connect the activity module to an edu-sharing repository (settings -> Edusharing).
 Then register your wordpress-site in your edu-sharing repository (admin-tools -> applications).
