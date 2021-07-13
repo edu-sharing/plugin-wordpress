@@ -93,29 +93,14 @@ class esEdit extends Component {
         const { attributes, setAttributes } = this.props;
         const post_id = wp.data.select("core/editor").getCurrentPostId();
         const plugin_url = attributes.pluginURL + '/edusharing/';
-        fetch(plugin_url + 'fetch.php', {
-            method : 'post',
-            mode:    'cors',
-            headers: {
-                'Content-Type': 'application/json',  // sent request
-                'Accept':       'application/json'   // expected data sent back
-            },
-            body: JSON.stringify({
-                useCase: 'deleteUsage',
-                post_id: post_id,
-                objectUrl: objectUrl,
-                resourceId: resourceId
-            })
-        })
-            .then(function(response) {
-                if (response.status >= 200 && response.status < 300) {
-                    return response.text()
-                }
-                throw new Error(response.statusText)
-            })
-            .then(function(response) {
-                console.log(response);
-            })
+        wp.apiFetch({
+            path: 'edusharing/v1/deleteUsage/' +
+                '?post_id=' + post_id +
+                '&objectUrl=' + objectUrl +
+                '&resourceId=' + resourceId,
+        }).then(data => {
+            console.log(data);
+        });
     }
 
     //open the repo & get data
@@ -139,29 +124,14 @@ class esEdit extends Component {
 
                 //if there is an old object delete it's usage
                 if(attributes.objectUrl){
-                    fetch(plugin_url + 'fetch.php', {
-                        method : 'post',
-                        mode:    'cors',
-                        headers: {
-                            'Content-Type': 'application/json',  // sent request
-                            'Accept':       'application/json'   // expected data sent back
-                        },
-                        body: JSON.stringify({
-                            useCase: 'deleteUsage',
-                            post_id: post_id,
-                            objectUrl: attributes.objectUrl,
-                            resourceId: attributes.resourceId
-                        })
-                    })
-                        .then(function(response) {
-                            if (response.status >= 200 && response.status < 300) {
-                                return response.text()
-                            }
-                            throw new Error(response.statusText)
-                        })
-                        .then(function(response) {
-                            console.log(response);
-                        })
+                    wp.apiFetch({
+                        path: 'edusharing/v1/deleteUsage/' +
+                            '?post_id=' + post_id +
+                            '&objectUrl=' + attributes.objectUrl +
+                            '&resourceId=' + attributes.resourceId,
+                    }).then(data => {
+                        console.log(data);
+                    });
                 }
 
                 let height, width, version;
@@ -186,7 +156,17 @@ class esEdit extends Component {
                 }
                 //generate hopefully unique resourceID
                 const resourceId = post_id.toString() + (Math.floor(Math.random() * 10000) + 1000);
-                const previewUrl = plugin_url + 'preview.php?post_id=' + post_id + '&objectUrl=' + url + '&objectVersion=' + version + '&repoId=' + repoID + '&resourceId=' + resourceId;
+                let previewUrl = '';
+                wp.apiFetch({
+                    path: 'edusharing/v1/previewImg/' +
+                        '?post_id=' + post_id +
+                        '&objectUrl=' + url +
+                        '&objectVersion=' + version +
+                        '&repoId=' + repoID +
+                        '&resourceId=' + resourceId,
+                }).then(data => {
+                    previewUrl = data;
+                });
                 //set the attributes from the node object
                 setAttributes({
                     previewImg: node.preview.url,
@@ -207,31 +187,17 @@ class esEdit extends Component {
                 });
 
                 //set new usage
-                fetch(plugin_url + 'fetch.php', {
-                    method : 'post',
-                    mode:    'cors',
-                    headers: {
-                        'Content-Type': 'application/json',  // sent request
-                        'Accept':       'application/json'   // expected data sent back
-                    },
-                    body: JSON.stringify({
-                        useCase: 'setUsage',
-                        post_id: post_id,
-                        post_title: post_title,
-                        objectUrl: url,
-                        objectVersion: version,
-                        resourceId: resourceId
-                    })
-                })
-                    .then(function(response) {
-                        if (response.status >= 200 && response.status < 300) {
-                            return response.text()
-                        }
-                        throw new Error(response.statusText)
-                    })
-                    .then(function(response) {
-                        console.log(response);
-                    })
+                wp.apiFetch({
+                    path: 'edusharing/v1/setUsage/' +
+                        '?post_id=' + post_id +
+                        '&post_id=' + post_id +
+                        '&objectUrl=' + url +
+                        '&objectVersion=' + version +
+                        '&resourceId=' + resourceId,
+                }).then(data => {
+                    console.log(data);
+                });
+
                 //remove event listener so only this block updates
                 window.removeEventListener('message', handleRepo, false );
             }

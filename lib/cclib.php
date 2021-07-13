@@ -542,7 +542,7 @@ function registerWithRepo($repoUrl, $auth, $data=NULL){
         'headers' => array(
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
-            'Authorization' => 'Basic ' . base64_encode( $auth )
+            'Authorization' => 'Basic ' . $auth
         )
     );
     $response = wp_remote_get( $url, $args );
@@ -550,6 +550,7 @@ function registerWithRepo($repoUrl, $auth, $data=NULL){
     $answer     = wp_remote_retrieve_body( $response );
 
     if(json_decode($answer)->isAdmin == false){
+        error_log('Given user / password was not accepted as admin: ' . $answer );
         return 'Given user / password was not accepted as admin: ' . $answer;
     }
 
@@ -567,7 +568,7 @@ function registerWithRepo($repoUrl, $auth, $data=NULL){
                             'Content-Type' => 'multipart/form-data; boundary=' . $delimiter,
                             'Content-Length' => strlen($body),
                             'Accept' => 'application/json',
-                            'Authorization' => 'Basic ' . base64_encode( $auth )
+                            'Authorization' => 'Basic ' . $auth
                          ),
         'cookies'     => array(),
     );

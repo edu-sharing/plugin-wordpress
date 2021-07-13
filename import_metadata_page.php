@@ -39,12 +39,13 @@ function es_import_metadata_page() {
     }
 
     if(isset($_POST['repoReg'])){
-        callRepo($_POST['repoAdmin'], $_POST['repoPwd']);
+        $auth = base64_encode( sanitize_text_field($_POST['repoAdmin']) . ':' . $_POST['repoPwd']);
+        callRepo($auth);
         exit();
     }
 
     if (isset($_POST['mdataurl'])) {
-        edusharing_import_metadata($_POST['mdataurl']);
+        edusharing_import_metadata(esc_url($_POST['mdataurl']));
         echo getRepoForm();
         exit();
     }
@@ -55,8 +56,7 @@ function es_import_metadata_page() {
     echo '</div>';
 }
 
-function callRepo($user, $pwd){
-    $auth = $user.':'.$pwd;
+function callRepo($auth){
     $repo_url = get_option('es_repo_url');
     $data = createXmlMetadata();
 

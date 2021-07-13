@@ -21,6 +21,8 @@ require_once(dirname(__FILE__).'/lib/cclib.php');
 require_once(dirname(__FILE__).'/lib/RenderParameter.php');
 require_once(dirname(__FILE__).'/optionsPage.php');
 require_once(dirname(__FILE__).'/import_metadata_page.php');
+require_once(dirname(__FILE__).'/proxy-api.php');
+require_once(dirname(__FILE__).'/block-api.php');
 
 $post_ID = Null;
 $postTitle = Null;
@@ -145,7 +147,7 @@ function es_render_callback($attributes) {
         }
 
         $inline = '<div class="eduContainer" data-type="esObject" data-url="' . get_site_url() .
-            '/wp-content/plugins/edusharing/proxy.php?URL=' . urlencode($url) . '&resId=' .
+            '/wp-json/edusharing/v1/proxy/?URL=' . urlencode($url) . '&resId=' .
             $nodeID . '&title=' . urlencode($objectTitle) . '&repoURL=' . urlencode(get_option('es_repo_url')) .
             '&mimetype=' . urlencode($mimeType) .
             '&mediatype=' . urlencode($mediaType) .
@@ -186,40 +188,6 @@ function delete_usage_on_post_delete($postid){
 }
 add_action('before_delete_post', 'delete_usage_on_post_delete');
 
-
-function edusharing_activate() {
-
-    // Fill this to automatically register the plugin with the repo upon installation
-    //$metadataurl = 'http://localhost:8080/edu-sharing/metadata?format=lms';
-    $metadataurl = null;
-    $repo_admin = 'admin';
-    $repo_pw = 'pw';
-
-    $auth = $repo_admin.':'.$repo_pw;
-
-    if (!empty($metadataurl) && get_option( 'es_autoinstall' ) != 'installed'){
-        if (edusharing_import_metadata($metadataurl)){
-            error_log('Successfully imported metadata from '.$metadataurl);
-            $repo_url = get_config('edusharing', 'application_cc_gui_url');
-            $data = createXmlMetadata();
-            $answer = json_decode(registerWithRepo($repo_url, $auth, $data), true);
-            if (isset($answer['appid'])){
-                add_option( 'es_autoinstall', 'installed');
-                error_log('Successfully registered the edusharing-moodle-plugin at: '.$repo_url);
-            }else{
-                error_log('INSTALL ERROR: Could not register the edusharing-moodle-plugin at: '.$repo_url.' because: '.$answer['message']);
-            }
-        }else{
-            error_log('INSTALL ERROR: Could not import metadata from '.$metadataurl);
-        }
-    }
-
-}
-//register_activation_hook( __FILE__, 'edusharing_activate' );
-
-
-
-
 // output for edu-sharing metadata
 function add_edusharing_metadata_feed() {
     add_feed( 'edusharing_metadata', 'edusharing_metadata' );
@@ -231,4 +199,5 @@ function edusharing_metadata() {
     header('Content-type: text/xml');
     print(html_entity_decode($metadata));
 }
+
 
