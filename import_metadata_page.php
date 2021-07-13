@@ -1,7 +1,5 @@
 <?php
 
-require_once("../../../wp-load.php");
-
 /**
  * Get repository properties and generate app properties - put them to configuration
  *
@@ -9,50 +7,60 @@ require_once("../../../wp-load.php");
  * @copyright metaVentis GmbH — http://metaventis.com
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+
+
+function es_import_metadata_menu() {
+    $menu_slug2 = 'es-import'; // unique identifier.
+    $capability = 'manage_options';
+    $callback2  = 'es_import_metadata_page';
+    $hook = add_submenu_page( 'es-menu', 'edu-sharing metadata import', 'Metadaten Importieren', $capability, $menu_slug2, $callback2 );
+
+    add_action( 'load-' . $hook, 'es_enqueue_import_css' );
+    function es_enqueue_import_css() {
+        wp_enqueue_style('es_import_css', plugins_url('/css/import_metadata_style.css', __FILE__));
+    }
+}
+add_action('admin_menu', 'es_import_metadata_menu');
+
+
+function es_import_metadata_page() {
 ?>
-<html>
-<head>
-    <title>edu-sharing metadata import</title>
-    <link rel="stylesheet" href="css/import_metadata_style.css" />
-    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700&display=swap" rel="stylesheet">
-</head>
-<body>
+    <div class="es-header">
+        <h1>Import metadata from an edu-sharing repository</h1>
+    </div>
 
-<div class="h5p-header">
-    <h1>Import metadata from an edu-sharing repository</h1>
-</div>
+    <div class="wrap">
+    <?php
 
-<div class="wrap">
-<?php
+    if (!current_user_can('manage_options')) {
+        echo 'Access denied!';
+        exit();
+    }
 
-if (!current_user_can('manage_options')) {
-    echo 'Access denied!';
-    exit();
-}
+    if(isset($_POST['repoReg'])){
+        callRepo($_POST['repoAdmin'], $_POST['repoPwd']);
+        exit();
+    }
 
-if(isset($_POST['repoReg'])){
-    callRepo($_POST['repoAdmin'], $_POST['repoPwd']);
-    exit();
-}
+    if (isset($_POST['mdataurl'])) {
+        edusharing_import_metadata($_POST['mdataurl']);
+        echo getRepoForm();
+        exit();
+    }
 
-if (isset($_POST['mdataurl'])) {
-    edusharing_import_metadata($_POST['mdataurl']);
+    echo get_form();
     echo getRepoForm();
-    exit();
+
+    echo '</div>';
 }
-
-echo get_form();
-echo getRepoForm();
-
-echo '</div></body></html>';
-exit();
 
 function callRepo($user, $pwd){
-
-    $repo_url = get_option('es_repo_url');
-    $apiUrl = $repo_url.'rest/admin/v1/applications?url='.plugins_url().'/edusharing/metadata.php';
     $auth = $user.':'.$pwd;
-    $answer = json_decode(callMetadataRepoAPI('PUT', $apiUrl, null, $auth), true);
+    $repo_url = get_option('es_repo_url');
+    $data = createXmlMetadata();
+
+    $answer = json_decode(registerWithRepo($repo_url, $auth, $data), true);
     if ( isset($answer['appid']) ){
         echo('<h3 class="edu_success">Successfully registered the edusharing-WordPress-plugin at: '.$repo_url.'</h3>');
     }else{
@@ -60,6 +68,7 @@ function callRepo($user, $pwd){
         if ( isset($answer['message']) ){
             echo '<p class="edu_error">'.$answer['message'].'</p>';
         }
+        echo '<br>';
         echo '<h3>Register the WordPress-Plugin in the Repository manually:</h3>';
         echo '
             <p class="edu_metadata"> To register the WordPress-PlugIn manually got to the 
@@ -80,7 +89,7 @@ function getRepoForm(){
     $repo_url = get_option('es_repo_url');
     if (!empty($repo_url)){
         return '
-            <form class="repo-reg" action="import_metadata.php" method="post">
+            <form class="repo-reg" method="post">
                 <h3>Try to register the edu-sharing WordPress-plugin with a repository:</h3>
                 <p>If your WordPress is behind a proxy-server, this might not work and you have to register the plugin manually.</p>
                 <div class="edu_metadata">
@@ -109,7 +118,7 @@ function getRepoForm(){
  */
 function get_form() {
     return '
-        <form action="import_metadata.php" method="post" name="mdform">
+        <form method="post" name="mdform">
             <h3>Enter your metadata endpoint here:</h3>
             <p>Hint: Just click on the example to copy it into the input-field.</p>
             <div class="edu_metadata">                
@@ -126,6 +135,6 @@ function get_form() {
                 </div>
             </div>
         </form>
-        <p>To export the edu-sharing plugin metadata use the following url: <a class="edu_export" target="_blank" href="' . plugins_url() . '/edusharing/metadata.php">' . plugins_url() . '/edusharing/metadata.php</a></p>';
+        <p>To export the edu-sharing plugin metadata use the following url: <a class="edu_export" target="_blank" href="' . home_url() . '/?feed=edusharing_metadata">' . home_url() . '/?feed=edusharing_metadata</a></p>';
 }
 

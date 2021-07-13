@@ -29,23 +29,13 @@ class filter_edusharing_edurender {
     public function filter_edusharing_get_render_html($url) {
         $inline = "";
         try {
-            $curlhandle = curl_init($url);
-            curl_setopt($curlhandle, CURLOPT_FOLLOWLOCATION, 1);
-            curl_setopt($curlhandle, CURLOPT_HEADER, 0);
-            // DO NOT RETURN HTTP HEADERS
-            curl_setopt($curlhandle, CURLOPT_RETURNTRANSFER, 1);
-            // RETURN THE CONTENTS OF THE CALL
-            curl_setopt($curlhandle, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-            curl_setopt($curlhandle, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($curlhandle, CURLOPT_SSL_VERIFYHOST, false);
-            $inline = curl_exec($curlhandle);
+            $inline = wp_remote_retrieve_body( wp_remote_get( $url ) );
             if($inline === false) {
-                trigger_error(curl_error($curlhandle), E_USER_WARNING);
+                trigger_error('no inline content!', E_USER_WARNING);
             }
         } catch (Exception $e) {
             trigger_error($e->getMessage(), E_USER_WARNING);
         }
-        curl_close($curlhandle);
         return $inline;
     }
 

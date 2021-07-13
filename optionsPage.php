@@ -1,6 +1,6 @@
 <?php
 
-//Options-Seite
+//Options-Page
 function es_register_settings() {
     //App Options
     add_option( 'es_appID', 'Wordpress_'.uniqid());
@@ -63,7 +63,7 @@ function es_register_settings() {
 add_action( 'admin_init', 'es_register_settings' );
 
 
-if(!get_option('es_publicKey')){
+if(!get_option('es_publicKey')) {
     $sslkeypair = edusharing_get_ssl_keypair();
     if (empty($sslkeypair['privateKey'])) { //is this usefull?
         update_option('es_publicKey', 'Failed to generate SSL-key');
@@ -75,12 +75,23 @@ if(!get_option('es_publicKey')){
 }
 
 function es_register_options_page() {
-    add_options_page(__( 'Edu-Sharing Einstellungen', 'edusharing' ), 'Edu-Sharing', 'manage_options', 'es-options', 'es_options_page');
+    add_options_page(__( 'Edu-Sharing Einstellungen', 'edusharing' ), 'Einstellungen', 'manage_options', 'es-options', 'es_options_page');
 }
-add_action('admin_menu', 'es_register_options_page');
+//add_action('admin_menu', 'es_register_options_page');
 
-function es_options_page()
-{
+function es_menu() {
+    $page_title = __( 'Edu-Sharing Einstellungen', 'edusharing');
+    $menu_title = 'edu-sharing';
+    $capability = 'manage_options'; // which menu.
+    $menu_slug  = 'es-menu'; // unique identifier.
+    $callback   = 'es_options_page';
+    $icon       = plugin_dir_url(__FILE__) . '/img/icon.svg';
+    $position   = 81;
+    add_menu_page( $page_title, $menu_title, $capability, $menu_slug, $callback, $icon, $position );
+}
+add_action('admin_menu', 'es_menu');
+
+function es_options_page() {
 ?>
     <div class="es-settings">
     <?php screen_icon(); ?>
@@ -90,7 +101,7 @@ function es_options_page()
                 <h3><?php _e( 'Mit Heimat-Repositorium verbinden:', 'edusharing' ); ?></h3>
                 <p><?php _e( 'Dies füllt automatisch viele der Einstellungen aus.', 'edusharing' ); ?></p>
             </div>
-            <a href="<?php echo plugin_dir_url(__FILE__) . '/import_metadata.php'  ?>" target="_blank"><?php _e( 'Repositorium verbinden', 'edusharing' ); ?></a>
+            <a href="<?php echo admin_url('admin.php?page=es-import');  ?>"><?php _e( 'Repositorium verbinden', 'edusharing' ); ?></a>
         </div>
         <div class="es-forms">
     <form method="post" action="options.php">

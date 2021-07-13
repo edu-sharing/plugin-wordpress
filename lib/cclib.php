@@ -464,24 +464,17 @@ function edusharing_import_metadata($metadataurl){
     try {
 
         $xml = new DOMDocument();
-
         libxml_use_internal_errors(true);
 
-        $curlhandle = curl_init($metadataurl);
-        curl_setopt($curlhandle, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($curlhandle, CURLOPT_HEADER, 0);
-        curl_setopt($curlhandle, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($curlhandle, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-        curl_setopt($curlhandle, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curlhandle, CURLOPT_SSL_VERIFYHOST, false);
-        $properties = curl_exec($curlhandle);
+        $properties = wp_remote_retrieve_body( wp_remote_get( $metadataurl ) );
+
         if ($xml->loadXML($properties) == false) {
             echo ('<p style="background: #FF8170">could not load ' . $metadataurl .
                     ' please check url') . "<br></p>";
             echo get_form($metadataurl);
-            exit();
+            return false;
         }
-        curl_close($curlhandle);
+
         $xml->preserveWhiteSpace = false;
         $xml->formatOutput = true;
         $entrys = $xml->getElementsByTagName('entry');
@@ -504,66 +497,88 @@ function edusharing_import_metadata($metadataurl){
     }
 }
 
+function createXmlMetadata(){
+    $xml = new SimpleXMLElement(
+        '<?xml version="1.0" encoding="utf-8" ?><!DOCTYPE properties SYSTEM "http://java.sun.com/dtd/properties.dtd"><properties></properties>');
 
-function callMetadataRepoAPI($method, $url, $ticket=NULL, $auth=NULL, $data=NULL){
-    $curl = curl_init();
-    switch ($method){
-        case "POST":
-            curl_setopt($curl, CURLOPT_POST, 1);
-            if ($data){
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-            }
-            break;
-        case "PUT":
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
-            if ($data){
-                $fields = array(
-                    'file[0]' => new CURLFile($data, 'text/xml', 'metadata.xml')
-                );
-                curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-            }
-            break;
-        default:
-            if ($data){
-                $url = sprintf("%s?%s", $url, http_build_query($data));
-            }
-    }
-    // OPTIONS:
-    curl_setopt($curl, CURLOPT_URL, $url);
-    curl_setopt($curl, CURLOPT_USERPWD, $auth);
-    if (empty($ticket)){
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-            'Accept: application/json',
-            'Content-Type: application/json',
-        ));
-    }else{
-        curl_setopt($curl, CURLOPT_HTTPHEADER, array(
-            'Authorization: EDU-TICKET '.$ticket,
-            'Accept: application/json',
-            'Content-Type: application/json',
-        ));
+    $entry = $xml->addChild('entry', get_option('es_appID'));
+    $entry->addAttribute('key', 'appid');
+    $entry = $xml->addChild('entry', 'CMS');
+    $entry->addAttribute('key', 'type');
+    $entry = $xml->addChild('entry', 'wordpress');
+    $entry->addAttribute('key', 'subtype');
+    $entry = $xml->addChild('entry', get_site_url());
+    $entry->addAttribute('key', 'domain');
+    $entry = $xml->addChild('entry', get_option('es_repo_host'));
+    $entry->addAttribute('key', 'host');
+    $entry = $xml->addChild('entry', 'true');
+    $entry->addAttribute('key', 'trustedclient');
+    $entry = $xml->addChild('entry', 'moodle:course/update');
+    $entry->addAttribute('key', 'hasTeachingPermission');
+    $entry = $xml->addChild('entry', get_option('es_publicKey'));
+    $entry->addAttribute('key', 'public_key');
+    $entry = $xml->addChild('entry', 'EDU_AUTH_AFFILIATION_NAME');
+    $entry->addAttribute('key', 'appcaption');
+
+    return html_entity_decode($xml->asXML());
+}
+
+function createApiBody($data, $delimiter){
+    $body = '';
+    $body .= '--' . $delimiter. "\r\n";
+    $body .= 'Content-Disposition: form-data; name="' . 'xml' . '"';
+    $body .= '; filename="metadata.xml"' . "\r\n";
+    $body .= 'Content-Type: text/xml' ."\r\n\r\n";
+    $body .= $data."\r\n";
+    $body .= "--" . $delimiter . "--\r\n";
+
+    return $body;
+}
+
+function registerWithRepo($repoUrl, $auth, $data=NULL){
+
+    $url = $repoUrl.'rest/authentication/v1/validateSession';
+    $args = array(
+        'headers' => array(
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+            'Authorization' => 'Basic ' . base64_encode( $auth )
+        )
+    );
+    $response = wp_remote_get( $url, $args );
+    $http_code = wp_remote_retrieve_response_code( $response );
+    $answer     = wp_remote_retrieve_body( $response );
+
+    if(json_decode($answer)->isAdmin == false){
+        return 'Given user / password was not accepted as admin: ' . $answer;
     }
 
-    curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($curl, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+    $urlXML = $repoUrl.'rest/admin/v1/applications/xml';
+    $delimiter = '-------------'.uniqid();
+    $body = createApiBody( $data, $delimiter);
+    $args = array(
+        'method'      => 'PUT',
+        'body'        => $body,
+        'timeout'     => '5',
+        'redirection' => '5',
+        'httpversion' => '1.0',
+        'blocking'    => true,
+        'headers'     => array(
+                            'Content-Type' => 'multipart/form-data; boundary=' . $delimiter,
+                            'Content-Length' => strlen($body),
+                            'Accept' => 'application/json',
+                            'Authorization' => 'Basic ' . base64_encode( $auth )
+                         ),
+        'cookies'     => array(),
+    );
 
-    // EXECUTE:
-    try{
-        $result = curl_exec($curl);
-        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-        if($result === false) {
-            trigger_error(curl_error($curl), E_USER_WARNING);
-        }
-        if ($httpcode === 401){
-            $result = json_encode(array('message' => 'Error 401: Unauthorized. Please check your credentials.'));
-        }
-    } catch (Exception $e) {
-        error_log('wp_edusharing: error: '.$e->getMessage());
-        trigger_error($e->getMessage(), E_USER_WARNING);
+    $response = wp_remote_post( $urlXML, $args );
+    $http_code = wp_remote_retrieve_response_code( $response );
+    $answer     = wp_remote_retrieve_body( $response );
+
+    if ($http_code >= 300) {
+        error_log('edusharing: registerWithRepo failed with '.$http_code);
     }
-    if(!$result){
-        $result = "Connection Failure";
-    }
-    curl_close($curl);
-    return $result;
+
+    return $answer;
 }

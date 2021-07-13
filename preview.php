@@ -57,22 +57,14 @@ $url .= '&sig=' . $sig;
 $url .= '&signed=' . $sigdata;
 $url .= '&ts=' . $time;
 
-//error_log($url);
 try {
-    $curlhandle = curl_init($url);
-    curl_setopt($curlhandle, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($curlhandle, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($curlhandle, CURLOPT_FOLLOWLOCATION, 1);
-    curl_setopt($curlhandle, CURLOPT_HEADER, 0);
-    curl_setopt($curlhandle, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($curlhandle, CURLOPT_USERAGENT, $_SERVER['HTTP_USER_AGENT']);
-    $output = curl_exec($curlhandle);
-    $mimetype = curl_getinfo($curlhandle, CURLINFO_CONTENT_TYPE);
+    $response   = wp_remote_get( $url );
+    $mimetype   = wp_remote_retrieve_header( $response, 'Content-Type' );
+    $output     = wp_remote_retrieve_body( $response );
 } catch (Exception $e) {
     error_log('curl-error: '.$e->getMessage());
     trigger_error($e->getMessage(), E_USER_WARNING);
 }
-curl_close($curlhandle);
 header('Content-type: ' . $mimetype);
 echo $output;
 exit();

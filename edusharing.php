@@ -20,6 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 require_once(dirname(__FILE__).'/lib/cclib.php');
 require_once(dirname(__FILE__).'/lib/RenderParameter.php');
 require_once(dirname(__FILE__).'/optionsPage.php');
+require_once(dirname(__FILE__).'/import_metadata_page.php');
 
 $post_ID = Null;
 $postTitle = Null;
@@ -110,8 +111,7 @@ function es_register_meta() {
 add_action( 'rest_api_init', 'es_register_meta' );
 
 //render frontend
-function es_render_callback($attributes)
-{
+function es_render_callback($attributes) {
     $post_ID = get_the_ID();
     $nodeID = $attributes['nodeID'];
     $objectUrl = $attributes['objectUrl'];
@@ -201,8 +201,8 @@ function edusharing_activate() {
         if (edusharing_import_metadata($metadataurl)){
             error_log('Successfully imported metadata from '.$metadataurl);
             $repo_url = get_config('edusharing', 'application_cc_gui_url');
-            $apiUrl = $repo_url.'rest/admin/v1/applications?url='.plugins_url().'/edusharing/metadata.php';
-            $answer = json_decode(callMetadataRepoAPI('PUT', $apiUrl, null, $auth), true);
+            $data = createXmlMetadata();
+            $answer = json_decode(registerWithRepo($repo_url, $auth, $data), true);
             if (isset($answer['appid'])){
                 add_option( 'es_autoinstall', 'installed');
                 error_log('Successfully registered the edusharing-moodle-plugin at: '.$repo_url);
@@ -215,4 +215,20 @@ function edusharing_activate() {
     }
 
 }
-register_activation_hook( __FILE__, 'edusharing_activate' );
+//register_activation_hook( __FILE__, 'edusharing_activate' );
+
+
+
+
+// output for edu-sharing metadata
+function add_edusharing_metadata_feed() {
+    add_feed( 'edusharing_metadata', 'edusharing_metadata' );
+}
+add_action( 'init', 'add_edusharing_metadata_feed' );
+
+function edusharing_metadata() {
+    $metadata = createXmlMetadata();
+    header('Content-type: text/xml');
+    print(html_entity_decode($metadata));
+}
+
