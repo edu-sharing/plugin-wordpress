@@ -72,7 +72,7 @@ function callRepo($auth){
         echo '<h3>Register the WordPress-Plugin in the Repository manually:</h3>';
         echo '
             <p class="edu_metadata"> To register the WordPress-PlugIn manually got to the 
-            <a href="'.$repo_url.'" target="_blank">Repository</a> and open the "APPLICATIONS"-tab of the "Admin-Tools" interface.<br>
+            <a href="'.esc_url($repo_url).'" target="_blank">Repository</a> and open the "APPLICATIONS"-tab of the "Admin-Tools" interface.<br>
             Only the system administrator may use this tool.<br>
             Enter the URL of the WordPress you want to connect. The URL should look like this:  
             „[WordPress-install-directory]/wp-content/plugins/edusharing/metadata.php".<br>
@@ -94,7 +94,7 @@ function getRepoForm(){
                 <p>If your WordPress is behind a proxy-server, this might not work and you have to register the plugin manually.</p>
                 <div class="edu_metadata">
                     <div class="repo_input">
-                        <p>Repo-URL:</p><input type="text" value="'.$repo_url.'" name=repoUrl />
+                        <p>Repo-URL:</p><input type="text" value="'.esc_url($repo_url).'" name=repoUrl />
                     </div>
                     <div class="repo_input">
                         <p>Repo-Admin-User:</p><input class="short_input" type="text" name="repoAdmin">
