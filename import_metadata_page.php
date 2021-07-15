@@ -62,11 +62,11 @@ function callRepo($auth){
 
     $answer = json_decode(registerWithRepo($repo_url, $auth, $data), true);
     if ( isset($answer['appid']) ){
-        echo('<h3 class="edu_success">Successfully registered the edusharing-WordPress-plugin at: '.$repo_url.'</h3>');
+        echo('<h3 class="edu_success">Successfully registered the edusharing-WordPress-plugin at: '.esc_url($repo_url).'</h3>');
     }else{
-        echo('<h3 class="edu_error">ERROR: Could not register the edusharing-WordPress-plugin at: '.$repo_url.'</h3>');
+        echo('<h3 class="edu_error">ERROR: Could not register the edusharing-WordPress-plugin at: '.esc_url($repo_url).'</h3>');
         if ( isset($answer['message']) ){
-            echo '<p class="edu_error">'.$answer['message'].'</p>';
+            echo '<p class="edu_error">'.esc_textarea($answer['message']).'</p>';
         }
         echo '<br>';
         echo '<h3>Register the WordPress-Plugin in the Repository manually:</h3>';
